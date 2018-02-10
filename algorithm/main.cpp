@@ -2467,46 +2467,49 @@ vector<int> searchRange(TreeNode * root, int k1, int k2) {
     return result;
 }
 
+//TODO: 栈的内存堆积
+vector<vector<int>> permute(vector<int> &nums, vector<int>::iterator begin) {
+    
+    vector<vector<int>> result;
+    
+    if (begin == nums.end()-1) {
+        result.push_back({*begin});
+        return result;
+    }
+    
+    auto lastResult = permute(nums, begin+1);
+    for (auto iter = lastResult.begin(); iter != lastResult.end(); iter++) {
+        
+        iter->insert(iter->begin(), *begin);
+        result.push_back(*iter);
+        
+        for (auto iter2 = iter->begin(); iter2 != iter->end()-1; iter2++) {
+            *iter2 = *(iter2+1);
+            *(iter2+1)=*begin;
+            
+            result.push_back(*iter);
+        }
+    }
+    
+    return result;
+}
+
+vector<vector<int>> permute(vector<int> &nums) {
+    if (nums.empty()) {
+        
+        return {{}};
+    }
+    return permute(nums, nums.begin());
+}
+
 int main(int argc, const char * argv[]) {
     
-    MinStack st;
+    vector<int> nums = {};
+    auto result = permute(nums);
     
-    vector<int> nums;
-    
-    for (int i = 0; i<100; i++) {
-//        printf("\n-------------------\n");
-        bool add = arc4random()%2;
-        
-        if (add) {
-            int num = arc4random() % 1000;
-            st.push(num);
-            printf("\nin\n");
-            nums.push_back(num);
-        }else{
-            
-            try {
-                int top = st.pop();
-                nums.erase(find(nums.begin(), nums.end(), top));
-                printf("\nout\n");
-            } catch (string& reason) {
-                int num = arc4random() % 1000;
-                st.push(num);
-                
-                nums.push_back(num);
-                printf("\nin\n");
-            }
-        }
-        
-        sort(nums.begin(), nums.end());
-        
-        
-        try {
-            std::cout<<st<<"min: "<<st.min()<<std::endl;
-        } catch (string& code) {
-            
-        }
-        
-//        printVectorIntOneLine(nums);printf("vector min: %d\n",nums.front());
+    for (auto iter = result.begin(); iter != result.end(); iter++) {
+        printVectorIntOneLine(*iter);
+        printf("\n---------------\n");
     }
     
     return 0;

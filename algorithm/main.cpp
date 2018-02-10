@@ -17,6 +17,7 @@
 #include <mach/mach_time.h>
 
 #include "TFSort.h"
+#include "MinStack.hpp"
 
 using namespace std;
 
@@ -2316,35 +2317,33 @@ string serialize(TreeNode * root) {
         return "";
     }
     
-    string result = to_string(root->val);
+    string result = to_string(root->val) + ",";
     
-    vector<TreeNode *> plane = {root};
-    while (!plane.empty()) {
+    vector<TreeNode *> *plane = new vector<TreeNode *>{root};
+    while (!plane->empty()) {
         
+        vector<TreeNode *> *nextPlane = new vector<TreeNode *>();
         TreeNode *cur = nullptr;
-        for (auto iter = plane.begin(); iter != plane.end(); iter++) {
+        for (auto iter = plane->begin(); iter != plane->end(); iter++) {
             
-            printf("\n");
-            printVectorNodeOneLine(plane);
-            printf("\n");
-            
-            iter = plane.erase(iter);
             cur = *iter;
             
             if (cur->left) {
-                result.append(to_string(cur->left->val));
-                iter = plane.insert(iter, cur->left);
+                result.append(to_string(cur->left->val) + ",");
+                nextPlane->push_back(cur->left);
             }else{
-                result.append("#");
+                result.append("#,");
             }
             if (cur->right) {
-                result.append(to_string(cur->right->val));
-                iter = plane.insert(iter, cur->right);
+                result.append(to_string(cur->right->val) + ",");
+                nextPlane->push_back(cur->right);
             }else{
-                result.append("#");
+                result.append("#,");
             }
         }
         
+        free(plane);
+        plane = nextPlane;
         
     }
     
@@ -2352,32 +2351,163 @@ string serialize(TreeNode * root) {
 }
 
 TreeNode * deserialize(string &data) {
+    if (data.empty()) {
+        return nullptr;
+    }
+    
     TreeNode *root = nullptr;
     
+    int readCount = 1;
+    int curIndex = 0;
+    
+    vector<TreeNode *> *plane = nullptr;
+    
+    do {
+        
+        vector<TreeNode *> *nextPlane = new vector<TreeNode *>();
+        
+        vector<TreeNode *>::iterator parent;
+        if (plane) {
+            parent = plane->begin();
+        }
+        bool isLeft = true;
+        
+        int validCount = 0;
+        int i = curIndex, readed = 0;
+        string number = "";
+        
+        while (readed < readCount) {
+            if (data[i] == ',') {
+                readed++;
+                
+                if (number != "#") {
+                    validCount++;
+                    
+                    TreeNode *node = new TreeNode(atoi(number.c_str()));
+                    nextPlane->push_back(node);
+                    
+                    if (root) {
+                        if (isLeft) {
+                            (*parent)->left = node;
+                        }else{
+                            (*parent)->right = node;
+                        }
+                    }
+                    
+                }
+                
+                isLeft = !isLeft;
+                if (isLeft) {
+                    parent++;
+                }
+                number = "";
+                
+            }else{
+                number.push_back(data[i]);
+            }
+            
+            i++;
+        }
+        
+        
+        
+        if (root == nullptr) {
+            root = nextPlane->front();
+        }
+        
+        curIndex = i;
+        readCount = 2*validCount;
+        plane = nextPlane;
+        
+    } while (!plane->empty() && curIndex < data.size());
     
     return root;
 }
 
+TreeNode *findFirstGreater(TreeNode *root, int k){
+    if (root == nullptr) {
+        return nullptr;
+    }
+    
+    if (root->val == k) {
+        return root;
+    }else if (root->val < k){
+        return findFirstGreater(root->right, k);
+    }else{
+        TreeNode *leftFind = findFirstGreater(root->left, k);
+        if (leftFind == nullptr) {
+            return root;
+        }else{
+            return leftFind;
+        }
+    }
+}
+
+void searchRange(TreeNode * root, int k1, int k2, vector<int> &range){
+    if (root == nullptr) {
+        return;
+    }
+    
+    if (root->val < k1) {
+        searchRange(root->right, k1, k2, range);
+    }else if (root->val > k2){
+        searchRange(root->left, k1, k2, range);
+    }else{
+        searchRange(root->left, k1, k2, range);
+        range.push_back(root->val);
+        searchRange(root->right, k1, k2, range);
+    }
+}
+
+vector<int> searchRange(TreeNode * root, int k1, int k2) {
+    vector<int> result;
+    
+    searchRange(root, k1, k2, result);
+    
+    return result;
+}
+
 int main(int argc, const char * argv[]) {
     
-    TreeNode A(1);
-    TreeNode B(2);
-    TreeNode C(3);
-    TreeNode D(4);
-    TreeNode E(5);
-    TreeNode F(6);
+    MinStack st;
     
-    A.left = &B;
-    A.right = &E;
+    vector<int> nums;
     
-    B.left = &C;
-    B.right = &D;
-    
-    E.left = &F;
-    
-    auto result = serialize(&A);
-    
-    cout<<result<<endl;
+    for (int i = 0; i<100; i++) {
+//        printf("\n-------------------\n");
+        bool add = arc4random()%2;
+        
+        if (add) {
+            int num = arc4random() % 1000;
+            st.push(num);
+            printf("\nin\n");
+            nums.push_back(num);
+        }else{
+            
+            try {
+                int top = st.pop();
+                nums.erase(find(nums.begin(), nums.end(), top));
+                printf("\nout\n");
+            } catch (string& reason) {
+                int num = arc4random() % 1000;
+                st.push(num);
+                
+                nums.push_back(num);
+                printf("\nin\n");
+            }
+        }
+        
+        sort(nums.begin(), nums.end());
+        
+        
+        try {
+            std::cout<<st<<"min: "<<st.min()<<std::endl;
+        } catch (string& code) {
+            
+        }
+        
+//        printVectorIntOneLine(nums);printf("vector min: %d\n",nums.front());
+    }
     
     return 0;
 }

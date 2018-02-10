@@ -29,6 +29,7 @@
 		184F58D71F43E38500ADC12A /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		18715FD91FCCFF9F008D69BC /* heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heap.cpp; sourceTree = "<group>"; };
 		18715FDA1FCCFF9F008D69BC /* heap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = heap.hpp; sourceTree = "<group>"; };
+		187FDE82202E8AC0001EE759 /* MinStack.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MinStack.hpp; sourceTree = "<group>"; };
 		18941B4A1FC8138700E7F3F5 /* TFSort.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TFSort.cpp; sourceTree = "<group>"; };
 		18941B4C1FC8167900E7F3F5 /* TFSort.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TFSort.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -68,6 +69,7 @@
 				18941B4C1FC8167900E7F3F5 /* TFSort.h */,
 				18715FD91FCCFF9F008D69BC /* heap.cpp */,
 				18715FDA1FCCFF9F008D69BC /* heap.hpp */,
+				187FDE82202E8AC0001EE759 /* MinStack.hpp */,
 			);
 			path = algorithm;
 			sourceTree = "<group>";

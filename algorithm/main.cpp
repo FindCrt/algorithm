@@ -2502,6 +2502,36 @@ vector<vector<int>> permute(vector<int> &nums) {
     return permute(nums, nums.begin());
 }
 
+//避免重复的方法，为什么会重复？两种不同的队列形式合并之后变成了同一种排列，即A+B变成E，C+D也变成E。所以放过来就是看某个排列是否有多种拆分方式。因为只考虑拆分成2部分，那么某一边唯一了，那么整个拆分也就唯一了，所以看怎么让一边一定是唯一的。
+//对于有重复元素的情况，让选择唯一的方式就是把他们全部拿到同一边，因为排列组合里从n个元素里选n个只有一种方式。
+//所以解法就是：把所有数分成k+1堆，这k堆是每堆里都是相同的数，且数量大于1，剩下的1堆是互不相同的“杂数”。这样每一堆之间互相融合都不会产生重复，而且最后一堆的存在，可以提高重复数比较少时的性能，它是按照无重复的情况处理的。
+//融合的方式就是:想象一队队伍和迎面的另一队队伍碰面，然后我们从侧面看过去的样子。
+vector<vector<int>> *partQueue(vector<int> &nums, bool *hasUnique){
+    
+}
+
+void mergeTwoParts(vector<vector<int>> *permuted, vector<vector<int>> &part1, vector<vector<int>> &part2){
+    
+}
+
+vector<vector<int>> permuteUnique(vector<int> &nums) {
+    bool hasUnique = false;
+    vector<vector<int>> *pureParts = partQueue(nums, &hasUnique);
+    
+    vector<vector<int>> *curPermuted = new vector<vector<int>>();
+    auto pureSize = pureParts->size() - (hasUnique ? 1:0);
+    
+    if (pureSize > 0) {
+        curPermuted->push_back(pureParts->front());
+    }
+    
+    for (int i = 1; i<pureSize; i++) {
+        mergeTwoParts(<#vector<vector<int> > &permuted#>, <#vector<vector<int> > &part1#>, <#vector<vector<int> > &part2#>)
+    }
+}
+
+
+
 int main(int argc, const char * argv[]) {
     
     vector<int> nums = {};

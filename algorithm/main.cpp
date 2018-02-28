@@ -2224,7 +2224,7 @@ int kthLargestElement(int n, vector<int> &nums) {
     
 }
 
-#pragma mark -
+#pragma mark - 调试函数
 
 void printVectorSting(vector<string> &vector){
     for (int i = 0; i<vector.size(); i++) {
@@ -2248,6 +2248,7 @@ void printVectorIntOneLine(vector<int> &vector){
     for (int i = 0; i<vector.size(); i++) {
         cout<<vector[i]<<" ";
     }
+    cout<<endl;
 }
 
 void printVectorNodeOneLine(vector<TreeNode *> &vector){
@@ -2255,6 +2256,14 @@ void printVectorNodeOneLine(vector<TreeNode *> &vector){
         cout<<vector[i]->val<<" ";
     }
 }
+
+void printTwoDVector(vector<vector<int>> & twoDVector){
+    for (auto iter = twoDVector.begin(); iter != twoDVector.end(); iter++) {
+        printVectorIntOneLine(*iter);
+    }
+}
+
+#pragma mark -
 
 
 void heapTest(int startIndex, int endIndex, int testCount, long maxNumber){
@@ -2506,41 +2515,441 @@ vector<vector<int>> permute(vector<int> &nums) {
 //对于有重复元素的情况，让选择唯一的方式就是把他们全部拿到同一边，因为排列组合里从n个元素里选n个只有一种方式。
 //所以解法就是：把所有数分成k+1堆，这k堆是每堆里都是相同的数，且数量大于1，剩下的1堆是互不相同的“杂数”。这样每一堆之间互相融合都不会产生重复，而且最后一堆的存在，可以提高重复数比较少时的性能，它是按照无重复的情况处理的。
 //融合的方式就是:想象一队队伍和迎面的另一队队伍碰面，然后我们从侧面看过去的样子。
-vector<vector<int>> *partQueue(vector<int> &nums, bool *hasUnique){
-    
-}
+//vector<vector<int>> *partQueue(vector<int> &nums, bool *hasUnique){
+//    
+//}
+//
+//void mergeTwoParts(vector<vector<int>> *permuted, vector<vector<int>> &part1, vector<vector<int>> &part2){
+//    
+//}
+//
+//vector<vector<int>> permuteUnique(vector<int> &nums) {
+//    bool hasUnique = false;
+//    vector<vector<int>> *pureParts = partQueue(nums, &hasUnique);
+//    
+//    vector<vector<int>> *curPermuted = new vector<vector<int>>();
+//    auto pureSize = pureParts->size() - (hasUnique ? 1:0);
+//    
+//    if (pureSize > 0) {
+//        curPermuted->push_back(pureParts->front());
+//    }
+//    
+//    for (int i = 1; i<pureSize; i++) {
+//        mergeTwoParts(<#vector<vector<int> > &permuted#>, <#vector<vector<int> > &part1#>, <#vector<vector<int> > &part2#>)
+//    }
+//}
 
-void mergeTwoParts(vector<vector<int>> *permuted, vector<vector<int>> &part1, vector<vector<int>> &part2){
+vector<vector<int>> subsets(vector<int> &nums, vector<int>::iterator start){
+    if (start == nums.end()) {
+        return {{}};
+    }
+    auto subSets = subsets(nums, start+1);
     
-}
-
-vector<vector<int>> permuteUnique(vector<int> &nums) {
-    bool hasUnique = false;
-    vector<vector<int>> *pureParts = partQueue(nums, &hasUnique);
-    
-    vector<vector<int>> *curPermuted = new vector<vector<int>>();
-    auto pureSize = pureParts->size() - (hasUnique ? 1:0);
-    
-    if (pureSize > 0) {
-        curPermuted->push_back(pureParts->front());
+    auto size = subSets.size();
+    for (int i = 0; i<size; i++) {
+        
+        auto oneSet = subSets[i];
+        oneSet.insert(oneSet.begin(), *start);
+        printVectorIntOneLine(oneSet);
+        subSets.push_back(oneSet);
     }
     
-    for (int i = 1; i<pureSize; i++) {
-        mergeTwoParts(<#vector<vector<int> > &permuted#>, <#vector<vector<int> > &part1#>, <#vector<vector<int> > &part2#>)
+    printTwoDVector(subSets);
+    
+    return subSets;
+}
+
+vector<vector<int>> subsets(vector<int> &nums) {
+    if (nums.empty()) {
+        return {{}};
+    }
+    
+    return subsets(nums, nums.begin());
+}
+
+vector<vector<int>> subsetsWithDup(vector<int> &nums, vector<int>::iterator start) {
+    if (start == nums.end()) {
+        return {{}};
+    }
+    
+    int dupCount = 1;
+    auto nextIter = start+1;
+    while (nextIter != nums.end() && *nextIter == *start) {
+        dupCount++;
+        nextIter++;
+    }
+    
+    auto subSets = subsetsWithDup(nums, nextIter);
+    
+    auto size = subSets.size();
+    for (int i = 0; i<size; i++) {
+        for (int j = 0; j<dupCount; j++) {
+            
+            vector<int> oneSet;
+            if (j == 0) {
+                oneSet = subSets[i];
+                
+            }else{
+                oneSet = subSets.back();
+            }
+            
+            oneSet.insert(oneSet.begin(), *start);
+            subSets.push_back(oneSet);
+        }
+    }
+    
+    return subSets;
+}
+
+vector<vector<int>> subsetsWithDup(vector<int> &nums) {
+    if (nums.empty()) {
+        return {{}};
+    }
+    sort(nums.begin(), nums.end());
+    return subsetsWithDup(nums, nums.begin());
+}
+
+bool isInterleave(string &s1, int i1, string &s2, int i2, string &s3, int i3){
+    if (i1 == s1.size()) {
+        return s2.substr(i2, s2.size()-i2).compare(s3.substr(i3, s3.size()-i3)) == 0;
+    }else if (i2 == s2.size()){
+        return s1.substr(i1, s1.size()-i1).compare(s3.substr(i3, s3.size()-i3)) == 0;
+    }
+    
+    char h1 = s1[i1];
+    char h2 = s2[i2];
+    char h3 = s3[i3];
+    
+    if (h3 == h2) {
+        if (h3 == h1) {
+            return isInterleave(s1, i1+1, s2, i2, s3, i3+1) || isInterleave(s1, i1, s2, i2+1, s3, i3+1);
+        }else{
+            return isInterleave(s1, i1, s2, i2+1, s3, i3+1);
+        }
+    }else if (h3 == h1){
+        return isInterleave(s1, i1+1, s2, i2, s3, i3+1);
+    }else{
+        return false;
     }
 }
 
+bool isInterleave(string &s1, string &s2, string &s3) {
+    return isInterleave(s1, 0, s2, 0, s3, 0);
+}
 
+
+
+int partitionArray(vector<int> &nums, int k) {
+    if (nums.empty()) {
+        return 0;
+    }
+    int left = 0, right = (int)nums.size()-1;
+    
+    while (1) {
+        while (nums[left] < k) {
+            left++;
+            
+            if (left > right) {
+                return left;
+            }
+        }
+        
+        while (nums[right] >= k) {
+            right--;
+            
+            if (left > right) {
+                return left;
+            }
+        }
+        
+        auto temp = nums[left];
+        nums[left] = nums[right];
+        nums[right] = temp;
+        
+        if (left == right-1) {
+            return right;
+        }
+        
+        left++;
+        right--;
+        
+//        printf("[%d, %d]\n",left,right);
+    }
+}
+
+struct QueenSolution {
+    vector<Point> points;
+    vector<int> validX;
+    vector<int> validY;
+    vector<int> invalidDiff1; //x-y
+    vector<int> invalidDiff2; //x+y
+    
+    QueenSolution(QueenSolution *other){
+        this->points = other->points;
+        this->validX = other->validX;
+        this->validY = other->validY;
+        this->invalidDiff1 = other->invalidDiff1;
+        this->invalidDiff2 = other->invalidDiff2;
+    }
+    
+    QueenSolution(){};
+};
+
+vector<QueenSolution*> solveNQueens(int size, int count){
+    
+    if (size < count || size < 1 || count < 0) {
+        return {};
+    }
+    
+    if (size == 1) {
+        
+        if (count == 1) {
+            QueenSolution *solution = new QueenSolution();
+            solution->points = {Point(0, 0)};
+            solution->validX = {};
+            solution->validY = {};
+            solution->invalidDiff1 = {0};
+            solution->invalidDiff2 = {0};
+            
+            return {solution};
+        }else{
+            QueenSolution *solution = new QueenSolution();
+            solution->points = {};
+            solution->validX = {0};
+            solution->validY = {0};
+            solution->invalidDiff1 = {};
+            solution->invalidDiff2 = {};
+            
+            return {solution};
+        }
+    }
+    
+    vector<QueenSolution*> result;
+    
+    //subCount * 1
+    auto subRes0 = solveNQueens(size-1, count);
+    for (auto iter = subRes0.begin(); iter != subRes0.end(); iter++) {
+        QueenSolution *solution = *iter;
+        solution->validX.push_back(size-1);
+        solution->validY.push_back(size-1);
+        
+        result.push_back(solution);
+    }
+    
+    
+    //subCount
+    auto subRes1 = solveNQueens(size-1, count-1);
+    for (auto iter = subRes1.begin(); iter != subRes1.end(); iter++) {
+        QueenSolution *solution = *iter;
+        
+        for (int i = 0; i < solution->validX.size(); i++) {
+            
+            auto x = solution->validX[i];
+            auto diff1 = x - size +1, diff2 = x + size - 1;
+            bool unused1 = find(solution->invalidDiff1.begin(), solution->invalidDiff1.end(), diff1) == solution->invalidDiff1.end();
+            bool unused2 = find(solution->invalidDiff2.begin(), solution->invalidDiff2.end(), diff2) == solution->invalidDiff2.end();
+            
+            if (unused1 && unused2) {
+                QueenSolution *copy = new QueenSolution(solution);
+                copy->points.push_back(Point(x, size-1));
+                copy->validX.erase(copy->validX.begin()+i);
+                copy->validX.push_back(size-1);
+                copy->invalidDiff1.push_back(diff1);
+                copy->invalidDiff2.push_back(diff2);
+                
+                result.push_back(copy);
+            }
+        }
+        
+        for (int i = 0; i<solution->validY.size(); i++) {
+            
+            auto y = solution->validY[i];
+            auto diff1 = size-1 - y, diff2 = size - 1 + y;
+            
+            bool unused1 = find(solution->invalidDiff1.begin(), solution->invalidDiff1.end(), diff1) == solution->invalidDiff1.end();
+            bool unused2 = find(solution->invalidDiff2.begin(), solution->invalidDiff2.end(), diff2) == solution->invalidDiff2.end();
+            
+            if (unused1 && unused2) {
+                QueenSolution *copy = new QueenSolution(solution);
+                copy->points.push_back(Point(size-1, y));
+                copy->validY.erase(copy->validY.begin()+i);
+                copy->validY.push_back(size-1);
+                copy->invalidDiff1.push_back(diff1);
+                copy->invalidDiff2.push_back(diff2);
+                
+                result.push_back(copy);
+            }
+        }
+        
+        if (find(solution->invalidDiff1.begin(), solution->invalidDiff1.end(), 0) == solution->invalidDiff1.end()) {
+            QueenSolution *copy = new QueenSolution(solution);
+            copy->points.push_back(Point(size-1, size-1));
+            copy->invalidDiff1.push_back(0);
+            copy->invalidDiff2.push_back(2*size-2);
+            
+            result.push_back(copy);
+        }
+        
+        free(solution);
+    }
+    
+    //[x * y]
+    auto subRes2 = solveNQueens(size-1, count-2);
+    for (auto iter = subRes2.begin(); iter != subRes2.end(); iter++) {
+        QueenSolution *solution = *iter;
+        
+        vector<int> possibleX,possibleY;
+        for (int i = 0; i < solution->validX.size(); i++) {
+            
+            auto x = solution->validX[i];
+            auto diff1 = x - size +1, diff2 = x + size - 1;
+            bool unused1 = find(solution->invalidDiff1.begin(), solution->invalidDiff1.end(), diff1) == solution->invalidDiff1.end();
+            bool unused2 = find(solution->invalidDiff2.begin(), solution->invalidDiff2.end(), diff2) == solution->invalidDiff2.end();
+            
+            if (unused1 && unused2) {
+                possibleX.push_back(x);
+            }
+        }
+        
+        for (int i = 0; i < solution->validY.size(); i++) {
+            
+            auto y = solution->validY[i];
+            
+            auto diff1 = size-1 - y, diff2 = size - 1 + y;
+            bool unused1 = find(solution->invalidDiff1.begin(), solution->invalidDiff1.end(), diff1) == solution->invalidDiff1.end();
+            bool unused2 = find(solution->invalidDiff2.begin(), solution->invalidDiff2.end(), diff2) == solution->invalidDiff2.end();
+            
+            
+            if (unused1 && unused2) {
+                possibleY.push_back(y);
+            }
+        }
+        
+        for (int i = 0; i < possibleX.size(); i++) {
+            for (int j = 0; j<possibleY.size(); j++) {
+                if (possibleX[i] != possibleY[j]) {
+                    QueenSolution *copy = new QueenSolution(solution);
+                    
+                    copy->points.push_back(Point(possibleX[i], size-1));
+                    copy->validX.erase(find(copy->validX.begin(), copy->validX.end(), possibleX[i]));
+                    
+                    copy->invalidDiff1.push_back(possibleX[i]-size+1);
+                    copy->invalidDiff2.push_back(possibleX[i]+size-1);
+                    
+                    
+                    copy->points.push_back(Point(size-1, possibleY[j]));
+                    copy->validY.erase(find(copy->validY.begin(), copy->validY.end(), possibleY[j]));
+
+                    copy->invalidDiff1.push_back(size-1-possibleY[j]);
+                    copy->invalidDiff2.push_back(size-1+possibleY[j]);
+                    
+                    result.push_back(copy);
+                }
+            }
+        }
+        
+        free(solution);
+    }
+    
+    return result;
+}
+
+vector<vector<string>> solveNQueens(int n) {
+    
+    auto solutions = solveNQueens(n, n);
+    vector<vector<string>> result;
+    
+    for (int i = 0; i<solutions.size(); i++) {
+        QueenSolution *solution = solutions[i];
+        
+        vector<string> str_solution;
+        for (int j = 0; j < n; j++) {
+            str_solution.push_back(string(n, '.'));
+        }
+        
+        for (int j = 0; j<solution->points.size(); j++) {
+            Point p = solution->points[j];
+            str_solution[p.x][p.y] = 'Q';
+        }
+        
+        result.push_back(str_solution);
+    }
+    
+    return result;
+}
+
+#pragma mark - queen
+
+int maxxx = 11;
+int queen[12];
+int sum=0; /* max为棋盘最大坐标 */
+
+void show() /* 输出所有皇后的坐标 */
+{
+    int i;
+    printf("(");
+    //i代表行数，queen[i]代表当前行元素所处的列数，
+    //注意此处下标是从0开始的
+    
+    for(i = 0; i < maxxx; i++)
+    {
+        printf(" %d", queen[i]+1);
+    }
+    printf(")\n");
+    //每次输出一种解的时候，那么他的解的数量就会增加1
+    sum++;
+}
+
+//此函数用于判断皇后当前皇后是否可以放在此位置
+int PLACE(int n) /* 检查当前列能否放置皇后 */
+{
+    //queen[i] == queen[n]用于保证元素不能再同一列
+    //abs(queen[i] - queen[n]) == abs(n - i)用于约束元素不能再同一行且不能再同一条斜线上
+    int i;
+    for(i = 0; i < n; i++) /* 检查横排和对角线上是否可以放置皇后 */
+    {
+        if(queen[i] == queen[n] || abs(queen[i] - queen[n]) == abs(n - i))
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+//核心函数，回溯法的思想
+void NQUEENS(int n) /* 回溯尝试皇后位置,n为横坐标 */
+{
+    int i;
+    for(i = 0; i < maxxx; i++)
+    {
+        //首先将皇后放在第0列的位置，对于第一次来说是肯定成立的
+        //所以第一次将皇后放在第0行0列的位置
+        queen[n] = i; /* 将皇后摆到当前循环到的位置 */
+        if(PLACE(n))
+        {
+            if(n == maxxx - 1)
+            {
+                show(); /* 如果全部摆好，则输出所有皇后的坐标 */
+            }
+            else
+            {
+                NQUEENS(n + 1); /* 否则继续摆放下一个皇后 */
+            }
+        }
+    }
+}
 
 int main(int argc, const char * argv[]) {
     
-    vector<int> nums = {};
-    auto result = permute(nums);
+    NQUEENS(0);
     
-    for (auto iter = result.begin(); iter != result.end(); iter++) {
-        printVectorIntOneLine(*iter);
-        printf("\n---------------\n");
-    }
+    printf("done");
+    
+//    for (auto i = 0; i < result.size(); i++) {
+//        printf("\n{\n");
+//        printVectorSting(result[i]);
+//        printf("}\n");
+//    }
     
     return 0;
 }

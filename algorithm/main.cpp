@@ -2939,17 +2939,487 @@ void NQUEENS(int n) /* 回溯尝试皇后位置,n为横坐标 */
     }
 }
 
+int maxSubArray(vector<int> &nums, int start, int end){
+    
+    if (start == end) {
+        return nums[end];
+    }
+    
+    int start_max = nums[start];
+    int curSum = start_max;
+    
+    for (int i = start+1; i<=end; i++) {
+        curSum += nums[i];
+        start_max = max(start_max, curSum);
+    }
+    
+    return max(start_max, maxSubArray(nums, start+1, end));
+}
+
+//只考虑包含end的
+int end_subs(vector<int> &nums, int end, int *marks, bool isMin){
+    
+    if (end < 0) {
+        return 0;
+    }
+    
+    int result = nums[end];
+    
+    int subResult = end_subs(nums, end-1, marks, isMin);
+    if (isMin) {
+        if (subResult < 0) { //求最小值时，下一级的解是小于0的，加上才会更小
+            result += subResult;
+        }
+    }else{
+        if (subResult > 0) {
+            result += subResult;
+        }
+    }
+    
+    marks[end] = result;
+    
+    return result;
+}
+
+int start_subs(vector<int> &nums, int start, int *marks, bool isMin){
+    
+    if (start >= nums.size()) {
+        return 0;
+    }
+    
+    int result = nums[start];
+    
+    int subResult = start_subs(nums, start+1, marks, isMin);
+    if (isMin) {
+        if (subResult < 0) { //求最小值时，下一级的解是小于0的，加上才会更小
+            result += subResult;
+        }
+    }else{
+        if (subResult > 0) {
+            result += subResult;
+        }
+    }
+    
+    marks[start] = result;
+    
+    return result;
+}
+
+//选择一个点，分割成两个区域,分别取最大值和最小值。关键点在于，解的两个区域一定是相邻的，这样就可以只考虑包含边界的子区间，直接从O(n^2)降到了O(n)
+int maxDiffSubArrays(vector<int> &nums) {
+    
+    if (nums.empty()) {
+        return 0;
+    }
+    
+    int start_minSum[nums.size()], start_maxSum[nums.size()], end_minSum[nums.size()], end_maxSum[nums.size()];;
+    memset(start_minSum, 0, sizeof(int)*nums.size());
+    memset(start_maxSum, 0, sizeof(int)*nums.size());
+    memset(end_minSum, 0, sizeof(int)*nums.size());
+    memset(end_maxSum, 0, sizeof(int)*nums.size());
+    
+    start_subs(nums, 0, start_minSum, true);
+    start_subs(nums, 0, start_maxSum, false);
+    
+    end_subs(nums, (int)nums.size()-1, end_minSum, true);
+    end_subs(nums, (int)nums.size()-1, end_maxSum, false);
+    
+    int maxDiff = 0;
+    
+    for (int i = 0; i<nums.size()-1; i++) {
+        int startMin = start_minSum[i+1];
+        int endMax = end_maxSum[i];
+        
+        int startMax = start_maxSum[i+1];
+        int endMin = end_minSum[i];
+
+        if (i == 0) {
+            maxDiff = max(abs(endMax-startMin), abs(startMax-endMin));
+        }else{
+            maxDiff = max(max(abs(endMax-startMin), abs(startMax-endMin)), maxDiff);
+        }
+    }
+    
+    return maxDiff;
+}
+
+void sortLetters(string &chars) {
+    if (chars.empty()) {
+        return;
+    }
+    
+    char part = 'a';
+    
+    size_t i = 0, j = chars.size()-1;
+    
+    
+    while (i < j) {
+        while (chars[i] >= part) {
+            i++;
+            if (i == j) {
+                return;
+            }
+        }
+        while (chars[j] < part) {
+            j--;
+            if (i == j) {
+                return;
+            }
+        }
+        
+        auto temp = chars[i];
+        chars[i] = chars[j];
+        chars[j] = temp;
+        
+        i++;
+        j--;
+    }
+}
+
+bool comparexx(const int &a,const int &b)
+{
+    return a>b;
+}
+
+vector<int> previousPermuation(vector<int> &nums) {
+    
+    //只记录索引最小的那次，因为有高位时一定有低位可以交换，而这时一定低位，所以高位无用。
+    map<int,long> numIndexes;
+    
+    int markCount = 0;
+    for (long i = (long)nums.size()-1; i >= 0; i--) {
+        int num = nums[i];
+        if (numIndexes.find(num) == numIndexes.end()) {
+            numIndexes[num] = i;
+            
+            markCount++;
+            if (markCount == 10) {
+                break;
+            }
+        }
+    }
+    
+    //低位的交换一定小于高位的交换,即使是考虑低位重排后
+    for (long start = (long)nums.size()-2; start >= 0; start--) {
+        int num = nums[start];
+        
+        //优先数字，而不是位置
+        for (int i = num-1; i>= 0; i--) {
+            auto index = numIndexes[i];
+            if (index > start) {
+                nums[start] = nums[index];
+                nums[index] = num;
+                
+                sort(nums.begin()+start+1, nums.end(), comparexx);
+                
+                return nums;
+            }
+        }
+    }
+    
+    //没有最小的了，取最大的排列
+    sort(nums.begin(), nums.end(), comparexx);
+    
+    return nums;
+}
+
+vector<int> nextPermutation(vector<int> &nums) {
+    
+    if (nums.empty()) {
+        return nums;
+    }
+    
+    //只记录索引最小的那次，因为有高位时一定有低位可以交换，而这时一定低位，所以高位无用。
+    map<int,long> numIndexes;
+    
+    int maxNum = nums.front();
+    
+    int markCount = 0;
+    for (long i = (long)nums.size()-1; i >= 0; i--) {
+        int num = nums[i];
+        
+        if (numIndexes.find(num) == numIndexes.end()) {
+            numIndexes[num] = i;
+            
+            markCount++;
+            if (markCount == 10) {
+                break;
+            }
+        }
+        
+        if (num > maxNum) maxNum = num;
+    }
+    
+    //低位的交换一定小于高位的交换,即使是考虑低位重排后
+    for (long start = (long)nums.size()-2; start >= 0; start--) {
+        int num = nums[start];
+        
+        //优先数字，而不是位置
+        for (int i = num+1; i<= maxNum; i++) {
+            auto index = numIndexes[i];
+            if (index > start) {
+                nums[start] = nums[index];
+                nums[index] = num;
+                
+                sort(nums.begin()+start+1, nums.end());
+                
+                return nums;
+            }
+        }
+    }
+    
+    //没有更大的了，取最小的排列
+    sort(nums.begin(), nums.end());
+    
+    return nums;
+}
+
+vector<vector<int>> twoSum(vector<int> &numbers, int sum, int start, int end){
+    
+    vector<vector<int>> result;
+    
+    int left = start, right = end;
+    
+    while (left < right) {
+        
+        int curSum = numbers[left]+numbers[right];
+        
+        if (curSum < sum) {
+            left++;
+        }else if (curSum > sum){
+            right--;
+        }else{
+            if (result.empty() || numbers[left] != result.back().front()) {  //avoid duplicate
+                result.push_back({numbers[left], numbers[right]});
+            }
+            
+            left++;
+            right--;
+        }
+    }
+    
+    return result;
+}
+
+vector<vector<int>> threeSum(vector<int> &numbers, int target = 0) {
+    sort(numbers.begin(), numbers.end());
+    
+    vector<vector<int>> result;
+    int repeatCount = 1;
+    for (int i = 0; i<numbers.size(); i+= repeatCount) {
+        int first = numbers[i];
+        
+        repeatCount = 1;
+        while (i+repeatCount < numbers.size() && numbers[i+repeatCount] == first) {
+            repeatCount++;
+        }
+        
+        //two first, find another num to make sum 0.
+        if (repeatCount > 1) {
+            int subTarget = -2*first;
+            
+            if (find(numbers.begin()+i+repeatCount, numbers.end(), subTarget) != numbers.end()) {
+                result.push_back({first, first, subTarget});
+            }
+        }
+        
+        //one first, find other two num
+        int subTarget = -1*first;
+        auto subResults = twoSum(numbers, subTarget, i+repeatCount, (int)numbers.size()-1);
+        for (int k = 0; k < subResults.size(); k++) {
+            
+            auto solution = subResults[k];
+            solution.insert(solution.begin(), first);
+            
+            result.push_back(solution);
+        }
+        
+        //three first
+        if (first == 0 && repeatCount > 2) {
+            result.push_back({0, 0, 0});
+        }
+    }
+    
+    return result;
+}
+
+vector<vector<int>> kSum(vector<int> &numbers, int k ,int target, int start, map<int, int> &numCounts){
+    
+    if (k == 2) {
+        return twoSum(numbers, target, start, (int)numbers.size()-1);
+    }else if (k == 1){
+        if (find(numbers.begin()+start, numbers.end(), target) != numbers.end()) {
+            return {{target}};
+        }
+        return {};
+    }
+
+    vector<vector<int>> result;
+    
+    int repeatCount = 1;
+    for (int i = start; i<numbers.size(); i+=repeatCount) {
+        int first = numbers[i];
+        repeatCount = numCounts[first];
+        
+        //每个循环代表，取j第一个数
+        for (int j = 1; j <= min(repeatCount, k); j++) {
+            
+            int subTarget = target - j*first;
+            
+            if(subTarget == 0 && j == k){
+                result.push_back(vector<int>(k, first));
+            }else{
+                //获取剩余的部分的解，然后拼接
+                auto subResults = kSum(numbers, k-j, subTarget, i+repeatCount, numCounts);
+                
+                for (int m = 0; m < subResults.size(); m++) {
+                    auto subRes = subResults[m];
+                    for (int l = 0; l<j; l++) {
+                        subRes.insert(subRes.begin(), first);
+                    }
+                    result.push_back(subRes);
+                }
+            }
+            
+            
+        }
+    }
+    
+    return result;
+}
+
+vector<vector<int>> kSum(vector<int> &numbers, int k ,int target){
+    
+    if (numbers.empty()) {
+        return {};
+    }
+    
+    sort(numbers.begin(), numbers.end());
+    
+    map<int, int> numCounts;
+    for (int i = 0; i<numbers.size(); i++) {
+        
+        int num = numbers[i];
+        if (numCounts.find(num) == numCounts.end()) {
+            numCounts[num] = 1;
+        }else{
+            numCounts[num] = numCounts[num]+1;
+        }
+    }
+    
+    return kSum(numbers, k, target, 0, numCounts);
+}
+
+
+vector<vector<int>> fourSum(vector<int> &numbers, int target) {
+    return kSum(numbers, 4, target);
+}
+
+int closestNum(vector<int> &numbers, int target, int start){
+    size_t left = start, right = numbers.size()-1;
+    
+    if (numbers[left] >= target) {
+        return numbers[left];
+    }else if (numbers[right] <= target){
+        return numbers[right];
+    }
+    
+    while (left < right-1) {
+        auto mid = (left+right)/2;
+        if (numbers[mid] < target) {
+            left = mid;
+        }else if (numbers[mid] > target){
+            right = mid;
+        }else{
+            return target;
+        }
+    }
+    
+    if (abs(numbers[left]-target) < abs(numbers[right]-target)) {
+        return numbers[left];
+    }else{
+        return numbers[right];
+    }
+}
+
+int twoSumClosest(vector<int> &numbers, int target, int start){
+    size_t left = start, right = numbers.size()-1;
+    
+    int diff = INT_MAX;
+    
+    while (left < right) {
+        
+        int curSum = numbers[left]+numbers[right];
+        
+        if (abs(curSum-target) < abs(diff)) {
+            diff = curSum-target;
+        }
+        
+        if (curSum < target) {
+            left++;
+        }else if (curSum > target){
+            right--;
+        }else{
+            return target;
+        }
+    }
+    
+    return diff+target;
+}
+
+int threeSumClosest(vector<int> &numbers, int target) {
+    sort(numbers.begin(), numbers.end());
+    
+    int diff = INT_MAX;
+    
+    int repeatCount = 1;
+    for (int i = 0; i<numbers.size(); i+= repeatCount) {
+        int first = numbers[i];
+        
+        repeatCount = 1;
+        while (i+repeatCount < numbers.size() && numbers[i+repeatCount] == first) {
+            repeatCount++;
+        }
+        
+        if (repeatCount > 2) {
+            if (abs(3*first-target) < diff) {
+                diff = 3*first-target;
+            }
+        }
+        
+        //two first, find another num to make sum 0.
+        if (repeatCount > 1) {
+            int subTarget = target-2*first;
+            
+            int otherNum = closestNum(numbers, subTarget, i+repeatCount);
+            if (abs(otherNum-subTarget) < abs(diff)) {
+                diff = otherNum-subTarget;
+            }
+        }
+        
+        //one first, find other two num
+        int subTarget = target-1*first;
+        int twoSum = twoSumClosest(numbers, subTarget, i+repeatCount);
+        if (abs(twoSum-subTarget) < abs(diff)) {
+            diff = twoSum-subTarget;
+        }
+    }
+    
+    return diff + target;
+}
+
+vector<int> searchRange(vector<int> &A, int target) {
+    
+}
+
 int main(int argc, const char * argv[]) {
     
-    NQUEENS(0);
     
-    printf("done");
+    vector<int> nums = {4,4,4,7};
     
-//    for (auto i = 0; i < result.size(); i++) {
-//        printf("\n{\n");
-//        printVectorSting(result[i]);
-//        printf("}\n");
-//    }
+    auto result = threeSumClosest(nums, 12);
+    
+    printf("%d\n",result);
     
     return 0;
 }

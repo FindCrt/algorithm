@@ -61,37 +61,6 @@ namespace TFDataStruct {
             }
         }
         
-//        void sink(size_t start){
-//            
-//            auto cur = start;
-//            while (leftChild(cur) < _validSize) {
-//                auto left = leftChild(cur), right = left+1;
-//                size_t min;
-//                T a = _datas[left];
-//                T b = _datas[right];
-//                if (a < b) {
-//                    
-//                }
-//                if (_datas[left] < _datas[right]) {
-//                    min = left;
-//                }else{
-//                    min = right;
-//                }
-//                
-//                if (_datas[cur] < _datas[min]) {
-//                    break;
-//                }else{
-//                    swap(cur, min);
-//                    cur = min;
-//                }
-//            }
-//            
-//            auto left = leftChild(cur);
-//            if (left < _validSize && _datas[left] < _datas[cur]) {
-//                swap(cur, left);
-//            }
-//        }
-        
         void sink_compare(size_t start){
             auto cur = start;
             while (rightChild(cur) < _validSize) {
@@ -116,20 +85,6 @@ namespace TFDataStruct {
                 swap(cur, left);
             }
         }
-        
-//        void floatUp(size_t start){
-//            auto cur = start;
-//            
-//            while (cur > 0) {
-//                auto parent = parentIndex(cur);
-//                if (_datas[parent] < _datas[cur]) {
-//                    break;
-//                }else{
-//                   swap(cur, parent);
-//                    cur = parent;
-//                }
-//            }
-//        }
         
         void floatUp_compare(size_t start){
             auto cur = start;
@@ -206,11 +161,6 @@ namespace TFDataStruct {
             
             _datas[_validSize-1] = node;
             floatUp_compare(_validSize-1);
-//            if (_compare) {
-//                floatUp_compare(_validSize-1);
-//            }else{
-//                floatUp(_validSize-1);
-//            }
             if (_validSize > _limitSize) {
                 _validSize--;
             }
@@ -234,19 +184,11 @@ namespace TFDataStruct {
         
         T popTop(){
             
+            if (_validSize == 0) abort();
             T top = _datas[0];
             _datas[0] = _datas[_validSize-1];
             _validSize--;
             sink_compare(0);
-//            if (_compare) {
-//                sink_compare(0);
-//            }else{
-//                sink(0);
-//            }
-            
-//            if (_validSize < _mallocSize/2) {
-//                free(_datas+_mallocSize/2, _mallocSize/2);
-//            }
             
             return top;
         }
@@ -260,9 +202,6 @@ namespace TFDataStruct {
         }
         
     };
-    
-    
- 
 }
 
 #endif /* heap_hpp */

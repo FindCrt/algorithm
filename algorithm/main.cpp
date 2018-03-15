@@ -30,7 +30,7 @@ class ListNode {
         this->next = NULL;
     }
     
-    static ListNode *createList(vector<int> vals){
+    static ListNode *createList(vector<int> &vals){
         ListNode *head = nullptr;
         ListNode *last = nullptr;
         for (auto iter = vals.begin(); iter != vals.end(); iter ++) {
@@ -1837,6 +1837,45 @@ ListNode * nthToLast(ListNode * head, int n) {
     return left;
 }
 
+ListNode * mergeTwoLists(ListNode *h1, ListNode *t1, ListNode *h2, ListNode *t2) {
+    if (h1 == t1) {
+        return h2;
+    }else if (h2 == t2){
+        return h1;
+    }
+    
+    ListNode *result = nullptr;
+    ListNode *cur1 = h1, *cur2 = h2, *curResult = nullptr;
+    while (cur1 != t1 && cur2 != t2) {
+        
+        ListNode *less = nullptr;
+        if (cur1->val < cur2->val) {
+            less = cur1;
+            cur1 = cur1->next;
+        }else{
+            less = cur2;
+            cur2 = cur2->next;
+        }
+        
+        
+        if (!curResult) {
+            result = less;
+            curResult = less;
+        }else{
+            curResult->next = less;
+            curResult = curResult->next;
+        }
+    }
+    
+    if (cur1 != t1) {
+        curResult->next = cur1;
+    }else if (cur2 != t2){
+        curResult->next = cur2;
+    }
+    
+    return result;
+}
+
 ListNode * mergeTwoLists(ListNode * l1, ListNode * l2) {
     if (l1 == nullptr) {
         return l2;
@@ -3409,17 +3448,660 @@ int threeSumClosest(vector<int> &numbers, int target) {
 }
 
 vector<int> searchRange(vector<int> &A, int target) {
+    if (A.empty()) {
+        return {-1, -1};
+    }
+    
+    int find = -1;
+    int left1 = -1, right1 = -1, left2 = -1, right2 = (int)A.size();
+    
+    int i = -1, j = (int)A.size();
+    while (i < j-1) {
+        auto mid = (i+j)/2;
+        if (A[mid] < target) {
+            i = mid;
+        }else if (A[mid] > target){
+            j = mid;
+        }else{
+            find = mid;
+            break;
+        }
+    }
+    
+    if (find < 0) {
+        return {-1, -1};
+    }else{
+        right1 = left2 = find;
+    }
+    
+    while (left1 < right1-1) {
+        auto mid = (left1+right1)/2;
+        if (A[mid] < target) {
+            left1 = mid;
+        }else{
+            right1 = mid;
+        }
+    }
+    
+    while (left2 < right2-1) {
+        auto mid = (left2+right2)/2;
+        if (A[mid] > target) {
+            right2 = mid;
+        }else{
+            left2 = mid;
+        }
+    }
+    
+    return {right1, left2};
+}
+
+int search(vector<int> &A, int target) {
+    
+    if (A.empty()) {
+        return -1;
+    }
+    
+    int part = A[0];
+    
+    int i = -1, j = (int)A.size();
+    while (i < j-1) {
+        auto mid = (i+j)/2;
+        if (A[mid] < part) {
+            j = mid;
+        }else if (A[mid] >= part){
+            i = mid;
+        }
+    }
+    
+    int reverse = i;
+    if (A[reverse] == target) {
+        return reverse;
+    }
+    
+    int size = (int)A.size();
+    i = reverse, j = reverse+size+1;
+    while (i < j-1) {
+        auto mid = (i+j)/2;
+        
+        int num = 0;
+        if (mid >= size) {
+            num = A[mid-size];
+        }else{
+            num = A[mid];
+        }
+        if (num < target) {
+            i = mid;
+        }else if (num > target){
+            j = mid;
+        }else{
+            return mid >= size ? mid-size:mid;
+        }
+    }
+    
+    return -1;
+}
+
+vector<vector<int>> zigzagLevelOrder(TreeNode * root) {
+    
+    if (root == nullptr) {
+        return {};
+    }
+    
+    vector<vector<int>> result;
+    
+    vector<TreeNode *> *curNodes = new vector<TreeNode *>(), *nextNodes = nullptr;
+    curNodes->push_back(root);
+    
+    bool fromLeft = true;
+    
+    while (!curNodes->empty()) {
+        
+        nextNodes = new vector<TreeNode *>();
+        vector<int> oneResult;
+        
+        for (auto iter = curNodes->end()-1; iter != curNodes->begin()-1; iter--) {
+            auto node = *iter;
+            oneResult.push_back(node->val);
+            
+            if (fromLeft) {
+                if (node->left) nextNodes->push_back(node->left);
+                if (node->right) nextNodes->push_back(node->right);
+            }else{
+                if (node->right) nextNodes->push_back(node->right);
+                if (node->left) nextNodes->push_back(node->left);
+            }
+        }
+        
+        fromLeft = !fromLeft;
+        
+        free(curNodes);
+        curNodes = nextNodes;
+        nextNodes = nullptr;
+        
+        result.push_back(oneResult);
+    }
+    
+    return result;
+}
+
+class SVNRepo {
+    public:
+    static bool isBadVersion(int k){
+        return k >= 2147483647;
+    };
+};
+
+int findFirstBadVersion(int n) {
+    int i = 0, j = n;
+    while (i < j-1) {
+        int mid = i+(j-i)/2;
+        if (SVNRepo::isBadVersion(mid)) {
+            j = mid;
+        }else{
+            i = mid;
+        }
+    }
+    
+    return j;
+}
+
+inline static int slope(vector<int> &A, int index){
+    int incre1 = A[index] - A[index-1];
+    int incre2 = A[index+1] - A[index];
+    
+    if (incre1 > 0) {
+        if (incre2 > 0) {
+            return 1;  //increase
+        }else{
+            return 0;  //peek
+        }
+    }else{
+        if (incre2 > 0) {
+            return -1; //valley
+        }else{
+            return -2; //decrease
+        }
+    }
+}
+
+//因为是离散的，会出错：{1, 2, 1, 3, 4, 5, 5, 4}.其实4-5-5-4之间是有一个峰值的，但是离散的看不出来，或说没有一个绝对的峰值点，两个5都是峰值。  *** 相邻数字不同的条件下才正确 ***
+
+//如果画一条斜率的图，那么开始是正的，结束时负的，而我们要找的就是斜率为0的位置，用二分法就可以。
+//避免找到低谷，要确保左边是正的，右边是负的。
+int findPeak(vector<int>& A) {
+    
+    int i = 0, j = (int)A.size()-1;
+    while (i < j-1) {
+        int mid = i+(j-i)/2;
+        
+        int slope_mid = slope(A, mid);
+        if (slope_mid < 0) {
+            j = mid;
+        }else if (slope_mid > 0){
+            i = mid;
+        }else{
+            return mid;
+        }
+    }
+    
+    return 0;
+}
+
+string longestCommonPrefix(vector<string> &strs) {
+    
+    if (strs.empty()) {
+        return "";
+    }
+    
+    string result = "";
+    
+    string minLen = strs.front();
+    
+    for (int i = 0; i<minLen.size(); i++) {
+        char checker = minLen[i];
+        
+        for (int j = 0; j<strs.size(); j++) {
+            if (strs[j][i] != checker) {
+                return result;
+            }
+        }
+        
+        result.push_back(checker);
+    }
+    
+    return result;
+}
+
+int longestCommonSubstring(string &A, string &B) {
+    map<int, vector<int>> charIndexB;
+    
+    for (int i = 0; i<B.size(); i++) {
+        int index = B[i];
+        
+        if (charIndexB.find(index) != charIndexB.end()) {
+            charIndexB[index].push_back(i);
+        }else{
+            charIndexB[index] = {i};
+        }
+    }
+    
+    int maxLen = 0;
+    
+    for (int i = 0; i<A.size(); i++) {
+        char first = A[i];
+        
+        auto pairIndexes = charIndexB[first];
+        for (int j = 0; j<pairIndexes.size(); j++) {
+            int offset = pairIndexes[j] - i;
+            
+            int len = 1;
+            while (A[i+len] == B[i+len+offset] && i+len < A.size() && i+len+offset < B.size()) {
+                len++;
+            }
+            
+            if (len > maxLen) {
+                maxLen = len;
+            }
+        }
+    }
+    
+    return maxLen;
+}
+
+int singleNumberII(vector<int> &A) {
+    map<int, int> counts;
+    
+    for (int i = 0; i<A.size(); i++) {
+        
+        int num = A[i];
+        if (counts.find(num) == counts.end()) {
+            counts[num] = 1;
+        }else{
+            if (counts[num] == 2) {
+                counts.erase(num);
+            }else{
+                counts[num] = counts[num]+1;
+            }
+        }
+    }
+    
+    return (*counts.begin()).first;
+}
+
+vector<int> singleNumberIII(vector<int> &A) {
+    map<int, bool> counts;
+    
+    for (int i = 0; i<A.size(); i++) {
+        int num = A[i];
+        
+        if (counts.find(num) == counts.end()) {
+            counts[num] = true;
+        }else{
+            counts.erase(num);
+        }
+    }
+    
+    return {counts.begin()->first, (++counts.begin())->first};
+}
+
+int MinAdjustmentCost(vector<int> &A, int target) {
+    
+    if (A.empty()) {
+        return 0;
+    }
+    
+    int maxNum = 100;
+    int costs[A.size()][maxNum];
+    
+    for (int i = 0; i<maxNum; i++) {
+        costs[0][i] = abs(A[0] - i);
+    }
+    
+    for (int i = 1; i<A.size(); i++) {
+        for (int j = 0; j<maxNum; j++) {
+            int minLastCost = INT_MAX;
+            for (int k = max(j-target, 0); k<=min(j+target, maxNum); k++) {
+                minLastCost = min(costs[i-1][k], minLastCost);
+            }
+            
+            costs[i][j] = minLastCost + abs(A[i]-j);
+        }
+    }
+    
+    int minCost = costs[A.size()-1][0];
+    for (int i = 1; i<maxNum; i++) {
+        minCost = min(minCost, costs[A.size()-1][i]);
+    }
+    
+    return minCost;
+}
+
+int backPack(int m, vector<int> &A) {
+    int residue[m+1][A.size()+1];
+    
+    for (int i = 0; i<=m; i++) {
+        residue[i][0] = i;
+    }
+    
+    for (int count = 1; count <= A.size(); count++) {
+        for (int resM = 0; resM<=m; resM++) {
+            int current = A[A.size()-count];
+            
+            int unpackStart = residue[resM][count-1];
+            if (resM >= current) {
+                int packStart = residue[resM-current][count-1];
+                residue[resM][count] = min(unpackStart, packStart);
+            }else{
+                residue[resM][count] = unpackStart;
+            }
+        }
+    }
+    
+    return m - residue[m][A.size()];
+}
+    
+//因为二叉树的性质，这个路线一定是，有一个点上升，然后下降，最多只有一个拐弯处，因为取了子节点就没法回头了。所以就变成了由某个节点发出的两条路线和最大值，而二叉树每个节点最多两个子节点，所以还不用选。
+//单边的路线可以丢弃了一边路线的
+void maxPathSum(TreeNode * root, int *maxPath, int *curMaxSum){
+    
+    int leftMaxPath = 0, rightMaxPath = 0;
+    if (root->left) {
+        maxPathSum(root->left, &leftMaxPath, curMaxSum);
+        if (leftMaxPath < 0) { //可以不要
+            leftMaxPath = 0;
+        }
+    }
+    if (root->right) {
+        maxPathSum(root->right, &rightMaxPath, curMaxSum);
+        if (rightMaxPath < 0) {
+            rightMaxPath = 0;
+        }
+    }
+    
+    *curMaxSum = max(*curMaxSum, leftMaxPath+rightMaxPath+root->val);
+    
+    *maxPath = max(leftMaxPath, rightMaxPath)+root->val;
+}
+
+int maxPathSum(TreeNode * root) {
+    int maxPath = INT_MIN, result = INT_MIN;
+    maxPathSum(root, &maxPath, &result);
+    
+    return result;
+}
+
+bool isValidBST(TreeNode * root, int *minNum, int *maxNum){
+    if (root == nullptr) {
+        return true;
+    }
+    
+    if (root->left) {
+        
+        int leftMin = 0,leftMax = 0;
+        bool leftValid = isValidBST(root->left, &leftMin, &leftMax);
+        if (!leftValid) {
+            return false;
+        }else if (leftMax >= root->val){
+            return false;
+        }
+        
+        *minNum = leftMin;
+    }else{
+        *minNum = root->val;
+    }
+    
+    if (root->right) {
+        
+        int rightMin = 0, rightMax = 0;
+        bool rightValid = isValidBST(root->right, &rightMin, &rightMax);
+        if (!rightValid) {
+            return false;
+        }else if (rightMin <= root->val){
+            return false;
+        }
+        
+        *maxNum = rightMax;
+    }else{
+        *maxNum = root->val;
+    }
+    
+    return true;
+}
+
+bool isValidBST(TreeNode * root) {
+    int min = 0, max = 0;
+    return isValidBST(root, &min, &max);
+}
+
+//tail是不包含的
+ListNode *list_partion(ListNode *head, ListNode *tail){
+    ListNode *slow = head, *fast = head->next;
+    
+    auto contrast = head->val;
+    
+    while (fast != tail) {
+        if (fast->val < contrast) {
+            
+            slow = slow->next;
+            
+            auto temp = slow->val;
+            slow->val = fast->val;
+            fast->val = temp;
+        }
+        
+        fast = fast->next;
+    }
+    
+    auto temp = slow->val;
+    slow->val = contrast;
+    head->val = temp;
+    
+    return slow;
+}
+
+ListNode *list_quickSort(ListNode * head, ListNode *tail){
+    
+    if (head == nullptr) {
+        return head;
+    }
+    
+    ListNode *partion = list_partion(head, tail);
+    
+    if (partion != head) {
+        list_quickSort(head, partion);
+    }
+    if (partion->next != tail) {
+        list_quickSort(partion->next, tail);
+    }
+    
+    return head;
+}
+
+//tail不包含
+ListNode *list_getMid(ListNode * head){
+    ListNode *slow = head, *fast = head;
+    
+    while (fast != nullptr && fast->next != nullptr) {
+        fast = fast->next;
+        if (fast) {
+            fast = fast->next;
+        }
+        
+        slow = slow->next;
+    }
+    
+    return slow;
+}
+
+//tail不包含
+ListNode *list_mergeSort(ListNode * head){
+    
+    if (head->next == nullptr) {
+        return head;
+    }
+    
+    auto mid = list_getMid(head);
+    
+    
+    auto right = list_mergeSort(mid->next);
+    mid->next = nullptr;
+    auto left = list_mergeSort(head);
+    
+    return mergeTwoLists(left, right);
+}
+
+ListNode * sortList(ListNode * head) {
+//    return list_quickSort(head, nullptr);
+    return list_mergeSort(head);
+}
+
+ListNode *reverseList(ListNode *list, ListNode *startPre = nullptr, ListNode *end = nullptr){
+    if (list == nullptr) {
+        return nullptr;
+    }
+    
+    ListNode *start = nullptr;
+    
+    if (startPre == nullptr) {
+        start = list;
+    }else{
+        start = startPre->next;
+        if (start == nullptr) {
+            return list;
+        }
+    }
+    
+    ListNode *revHead = start, *revTail = start;
+    
+    auto next = revTail->next;
+    
+    while (next != end) {
+        revTail->next = next->next;
+        next->next = revHead;
+        
+        revHead = next;
+        
+        next = revTail->next;
+    }
+    
+    if (startPre == nullptr) {
+        return revHead;
+    }else{
+        startPre->next = revHead;
+        return list;
+    }
+}
+
+void reorderList(ListNode * head) {
+    if (head == nullptr) {
+        return;
+    }
+    ListNode *mid = list_getMid(head);
+    ListNode *normalHead = reverseList(head, mid);
+    
+    ListNode *revHead = mid->next;
+    mid->next = nullptr;
+    
+    while (revHead) {
+        auto next = revHead->next;
+        
+        revHead->next = normalHead->next;
+        normalHead->next = revHead;
+        
+        normalHead = normalHead->next->next;
+        revHead = next;
+    }
+}
+
+//不能标记，因为你不知道从哪个节点开始进入了环。快慢节点相当于造了一个动态的环。
+//假设第一个环的长度是T，那么快节点走到2T的时候，慢节点走到T,它们刚好相遇。一定有解，说明一定会相遇。
+bool hasCycle(ListNode * head) {
+    ListNode *fast = head, *slow = head;
+    
+    while (fast != nullptr) {
+        fast = fast->next;
+        if (fast == nullptr) {
+            return false;
+        }
+        fast = fast->next;
+        
+        slow = slow->next;
+        
+        if (slow == fast) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+static inline int listNodeMinHeapCompare(ListNode *a, ListNode *b){
+    if (a->val < b->val) {
+        return -1;
+    }else if (a->val > b->val){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+ListNode *mergeKLists(vector<ListNode *> &lists) {
+    TFDataStruct::heap<ListNode *> headMinHeap(listNodeMinHeapCompare, lists.size());
+    
+    for (int i = 0; i<lists.size(); i++) {
+        ListNode *head = lists[i];
+        if (head) {
+            headMinHeap.append(head);
+        }
+    }
+    
+    cout<<headMinHeap<<endl;
+    
+    ListNode *head = nullptr, *tail = nullptr;
+    
+    while (!headMinHeap.isEmpty()) {
+        ListNode *cur = headMinHeap.popTop();
+        
+        if (head == nullptr) {
+            head = tail = cur;
+        }else{
+            tail->next = cur;
+            tail = cur;
+        }
+        
+        if (cur->next) headMinHeap.append(cur->next);
+    }
+    
+    return head;
+}
+
+struct RandomListNode {
+    int label;
+    RandomListNode *next, *random;
+    RandomListNode(int x) : label(x), next(NULL), random(NULL) {}
+};
+
+RandomListNode *copyRandomList(RandomListNode *head) {
     
 }
 
 int main(int argc, const char * argv[]) {
     
+    vector<int> nums = {0,1};
     
-    vector<int> nums = {4,4,4,7};
+    ListNode *n11 = new ListNode(2);
+    ListNode *n12 = new ListNode(4);
+    n11->next = n12;
     
-    auto result = threeSumClosest(nums, 12);
+    ListNode *n21 = nullptr;
     
-    printf("%d\n",result);
+    ListNode *n31 = new ListNode(1);
+    
+    vector<ListNode *> lists = {n11, n21, n31};
+    
+    ListNode *result = mergeKLists(lists);
+    
+    ListNode::printList(result);
     
     return 0;
 }

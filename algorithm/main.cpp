@@ -15,6 +15,7 @@
 #include <iostream>
 #include "heap.hpp"
 #include <mach/mach_time.h>
+#include <unordered_set>
 
 #include "TFSort.h"
 #include "MinStack.hpp"
@@ -309,6 +310,7 @@ inline bool isNumber(char c){
     return c <= '9' && c >= '0';
 }
 
+//考虑空格
 bool isPalindrome(string s) {
     
     bool isBlank = true;
@@ -4082,26 +4084,334 @@ struct RandomListNode {
 };
 
 RandomListNode *copyRandomList(RandomListNode *head) {
+    if (head == nullptr) {
+        return nullptr;
+    }
     
+    RandomListNode *cur = head;
+    RandomListNode *newHead = nullptr, *newLast = nullptr;
+    
+    while (cur) {
+        
+        RandomListNode *newCur = new RandomListNode(cur->label);
+        newCur->random = cur->random;
+        
+        if (newHead == nullptr) {
+            newHead = newCur;
+            newLast = newCur;
+        }else{
+            newLast->next = newCur;
+            newLast = newCur;
+        }
+        
+        auto next = cur->next;
+        cur->next = newCur;
+        
+        cur = next;
+    }
+    
+    auto newCur = newHead;
+    while (newCur) {
+        if (newCur->random) {
+            newCur->random = newCur->random->next;
+        }
+        
+        newCur = newCur->next;
+    }
+    
+    return newHead;
 }
+
+bool wordBreak(string &s, unordered_set<string> &dict) {
+    bool match[s.size()+1];
+    memset(match, 0, sizeof(match));
+    
+    match[0] = true;
+    
+    
+    for (size_t i = 1; i<s.size()+1; i++) {
+        for (auto iter = dict.begin(); iter != dict.end(); iter++) {
+            auto len = iter->size();
+            
+            if (len > i) {
+                continue;
+            }
+            
+            if (s.substr(i-len, len).compare(*iter) == 0 && match[i-len]) {
+                match[i] = true;
+            }
+        }
+    }
+    
+    return match[s.size()];
+}
+
+//简单回文判断
+inline bool isPalindrome2(string &s, size_t start, size_t end){
+    size_t i = 0;
+    while (i < (end-start+1)/2) {
+        if (s[i+start] != s[end-i]) {
+            return false;
+        }
+        
+        i++;
+    }
+    
+    return true;
+}
+
+int minRoute(bool **routes, size_t start, size_t end, map<size_t, int> &save){
+    
+    if (save.find(start) != save.end()) {
+        return save[start];
+    }
+    
+    if (start > end) {
+        return 0;
+    }else if (start == end){
+        return 1;
+    }
+    
+    int subMin = INT_MAX;
+    for (auto i = start; i<=end; i++) {
+        if (routes[start][i]) {
+            subMin = min(subMin, minRoute(routes, i+1, end, save));
+        }
+
+    }
+    
+    save[start] = subMin+1;
+    
+    return subMin+1;
+}
+
+int minCut(string &s) {
+    
+    bool *routes[s.size()];
+    for (int i = 0; i<s.size(); i++) {
+        routes[i] = new bool[s.size()];
+        memset(routes[i], 0, sizeof(bool)*s.size());
+    }
+    
+    //初始化回文标记，因为回文的性质，固定一个中心，从内向外扩散判断，某个长度不是回文，那么之后都不是了。
+    //复杂度n^2,每一对有且仅有一次判断。
+    for (size_t sum = 0; sum <= 2*s.size()-2; sum++) {
+        long left = sum/2, right = sum-left;
+        while (left>= 0 && right <= s.size()) {
+            if (s[left] == s[right]) {
+                routes[left][right] = true;
+            }else{
+                break;
+            }
+            
+            left--;
+            right++;
+        }
+    }
+    
+    map<long, unsigned long> save;
+    save[s.size()-1] = 1;
+    
+    for (long i = s.size()-2; i>= 0; i--) {
+        
+        unsigned long curMin = s.size();
+        if (routes[i][s.size()-1]) {
+            curMin = 1;
+        }else{
+            for (auto j = i; j<s.size(); j++) {
+                if (routes[i][j]) {
+                    curMin = min(curMin, save[j+1]+1);
+                }
+            }
+        }
+        
+        save[i] = curMin;
+    }
+    
+    return (int)save[0]-1;
+}
+
+//重复的保留一个
+ListNode * deleteDuplicates(ListNode * head) {
+    if (head == nullptr) {
+        return head;
+    }
+    
+    map<int, bool> exist;
+    ListNode *cur = head, *next = cur->next;
+    exist[cur->val] = true;
+    
+    while (next) {
+        if (exist.find(next->val) != exist.end()) {
+            cur->next = next->next;
+        }else{
+            exist[next->val] = true;
+            cur = next;
+        }
+        
+        next = cur->next;
+    }
+    
+    return head;
+}
+
+//重复的全删掉
+ListNode * deleteDuplicates2(ListNode * head) {
+    if (head == nullptr) {
+        return head;
+    }
+    
+    map<int, bool> exist;
+    ListNode *cur = head, *next = cur->next;
+    exist[cur->val] = false;
+    
+    while (next) {
+        if (exist.find(next->val) != exist.end()) {
+            cur->next = next->next;
+            exist[next->val] = true; //more than 1 times or Duplicate
+        }else{
+            exist[next->val] = false; //just exist
+            cur = next;
+        }
+        
+        next = cur->next;
+    }
+    
+    cur = head;
+    ListNode *pre = nullptr;
+    while (cur) {
+        if (exist[cur->val]) { //Duplicate
+            if (pre) {
+                pre->next = cur->next;
+            }else{
+                head = cur->next;
+            }
+            
+        }else{
+            pre = cur;
+        }
+        
+        cur = cur->next;
+    }
+    
+    return head;
+}
+
+bool canJump2(vector<int> &A) {
+    if (A.empty()) {
+        return true;
+    }
+    
+    bool canJList[A.size()];
+    memset(canJList, 0, sizeof(canJList));
+    canJList[0] = true;
+    
+    for (int i = 1; i<A.size(); i++) {
+        for (int j = 0; j<i; j++) {
+            if (canJList[j] && A[j]+j >= i) {
+                canJList[i] = true;
+                break;
+            }
+        }
+    }
+    
+    return canJList[A.size()-1];
+}
+
+bool canJump(vector<int> &A) {
+    if (A.empty()) {
+        return true;
+    }
+    
+    size_t cur = 0, next = A[0];
+    while (next < A.size()-1) {
+        
+        auto maxJump = next;
+        
+        for (auto i = cur+1; i<=next; i++) {
+            maxJump = max(A[i]+i, maxJump);
+        }
+        
+        if (maxJump == next) { //下一轮没有实现跨越，就会被锁死
+            return false;
+        }
+        
+        cur = next;
+        next = maxJump;
+    }
+    
+    return true;
+}
+
+/**
+ *  动态规划的核心是找到从k-1到k之间的过渡模式，从简到难有3种：
+ *  1. 直接去掉一个元素 
+ *  2. 所有[0, k-1] 共同影响k
+ *  3. 符合某些条件的[0, k-1]，这题就是这样，条件是：可以一步跳跃到k的低级元素。有些二维的动态规划也是这样。
+ */
+int jump2(vector<int> &A) {
+    int step[A.size()];
+    memset(step, 0, sizeof(step));
+    
+    for (int i = 1; i<A.size(); i++) {
+        int minStep = i; //最多为i-1,i是不可能的值
+        
+        for (int j = 0; j<i; j++) {
+            if (A[j]+j >= i) { //可以一步跳过来
+                minStep = min(minStep, step[j]);
+            }
+        }
+        
+        if (minStep < i) {
+            step[i] = minStep+1;
+        }else{
+            return -1;  //没有解
+        }
+
+    }
+    
+    return step[A.size()-1];
+}
+
+int jump(vector<int> &A) {
+    int step[A.size()];
+    memset(step, 0, sizeof(step));
+    
+    for (int i = 0; i<A.size(); i++) {
+        
+        for (int j = i+1; j<=min(A[i]+i, (int)A.size()); j++) {
+            if (step[j] == 0 || step[i]+1 < step[j]) {
+                
+                step[j] = step[i]+1;
+            }
+        }
+    }
+    
+    return step[A.size()-1];
+}
+
+//因为i情况下的结果只需要知道i-1的结果便可以求出，所以原本的二维表可以缩减为一维表，dp就是当前i所对应的那一列的记录。
+int numDistinct(string &S, string &T) {
+    // write your code here
+    vector<int> dp(T.length()+1);
+    dp[0] = 1;
+    for(int i=1;i<=S.length();i++)
+    {
+        for(int j=T.length();j>0;j--)
+            dp[j] += T[j-1]==S[i-1]?dp[j-1]:0;
+    }
+    return dp[T.length()];
+}
+
 
 int main(int argc, const char * argv[]) {
     
-    vector<int> nums = {0,1};
+    vector<int> vals = {};
     
-    ListNode *n11 = new ListNode(2);
-    ListNode *n12 = new ListNode(4);
-    n11->next = n12;
     
-    ListNode *n21 = nullptr;
+    auto result = jump(vals);
     
-    ListNode *n31 = new ListNode(1);
     
-    vector<ListNode *> lists = {n11, n21, n31};
-    
-    ListNode *result = mergeKLists(lists);
-    
-    ListNode::printList(result);
     
     return 0;
 }

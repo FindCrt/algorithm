@@ -31,7 +31,7 @@ class ListNode {
         this->next = NULL;
     }
     
-    static ListNode *createList(vector<int> &vals){
+    static ListNode *createList(vector<int> vals){
         ListNode *head = nullptr;
         ListNode *last = nullptr;
         for (auto iter = vals.begin(); iter != vals.end(); iter ++) {
@@ -2287,7 +2287,7 @@ void printVectorStingOneLine(vector<string> &vector){
 
 void printVectorIntOneLine(vector<int> &vector){
     for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<" ";
+        cout<<vector[i]<<",";
     }
     cout<<endl;
 }
@@ -4347,7 +4347,7 @@ bool canJump(vector<int> &A) {
  *  动态规划的核心是找到从k-1到k之间的过渡模式，从简到难有3种：
  *  1. 直接去掉一个元素 
  *  2. 所有[0, k-1] 共同影响k
- *  3. 符合某些条件的[0, k-1]，这题就是这样，条件是：可以一步跳跃到k的低级元素。有些二维的动态规划也是这样。
+ *  3. 符合某些条件的[0, k-1]，这题就是这样，条件是：可以一步跳跃到k的低级元素。有些二维的动态规划也是这样，下面一题的编辑距离就是这类型的经典。
  */
 int jump2(vector<int> &A) {
     int step[A.size()];
@@ -4403,15 +4403,991 @@ int numDistinct(string &S, string &T) {
     return dp[T.length()];
 }
 
+inline void fillDis(string &word1, string &word2, int x, int y, int **dis){
+    
+    if (x == word1.size()) {
+        dis[x][y] = word2.size() - y;
+        return;
+    }else if(y == word2.size()){
+        dis[x][y] = word1.size() - x;
+        return;
+    }
+    
+    if (word1[x] == word2[y]) {
+        dis[x][y] = dis[x+1][y+1];  //相等，不改
+    }else{
+        //依次是替换、删除和增加
+        dis[x][y] = min(dis[x+1][y+1],min(dis[x+1][y], dis[x][y+1]))+1;
+    }
+}
+
+//119. 编辑距离
+int minDistance(string &word1, string &word2) {
+    int *dis[word1.size()+1]; //按2维数组方式，x的长度代表指针的个数，x方向采用word1
+    for (int i = 0; i<=word1.size(); i++) {
+        dis[i] = new int[word2.size()+1];
+        memset(dis[i], 0, sizeof(int)*(word2.size()+1));
+    }
+    
+    int minWidth = (int)min(word1.size(), word2.size());
+    
+    for (int w = 0; w <= minWidth; w++) {
+        int x = word1.size()-w, y = word2.size()-w;  //x方向采用word1，跟上面匹配
+        
+        fillDis(word1, word2, x, y, dis);
+        
+        for (int v = y-1; v >= 0; v--) {
+            fillDis(word1, word2, x, v, dis);
+        }
+        
+        for (int h = x-1; h >= 0; h--) {
+            fillDis(word1, word2, h, y, dis);
+        }
+    }
+    
+//    for (int i = 0; i<=word1.size(); i++) {
+//        for (int j = 0; j<=word2.size(); j++) {
+//            printf("%d ",dis[i][j]);
+//        }
+//        
+//        printf("\n");
+//    }
+    
+    return dis[0][0];
+}
+
+template <class T>
+class LadderGraphNode{
+public:
+    T val;
+    vector<LadderGraphNode*> links;
+//    LadderGraphNode *shortestPre;
+    int step = -1;
+    
+    LadderGraphNode(T val):val(val){};
+};
+
+inline bool oneModify(string &str1, string &str2){
+    bool modify = false;
+    for (int i = 0; i<str1.size(); i++) {
+        if (str1[i] != str2[i]) {
+            
+            if (modify) {
+                return false;
+            }else{
+                modify = true;
+            }
+        }
+    }
+    return true;
+}
+
+//120. 单词接龙
+//想象每个单词是一个球，如果两个单词只需要经过一次替换就会相等，那么在它们之间连上一条线。start和end也加入到这个词典里，然后整体就会形成一个网，一个立体的网。题目的需求就转变为了：寻找从start到end的一条最短路径。
+int ladderLength(string &start, string &end, unordered_set<string> &dict) {
+    
+    if (start.compare(end) == 0) {
+        return 1;
+    }
+    if (oneModify(start, end)) {
+        return 2;
+    }
+    
+    vector<LadderGraphNode<string>*> nodes;
+    for (auto iter = dict.begin(); iter != dict.end(); iter++) {
+        
+        nodes.push_back(new LadderGraphNode<string>(*iter));
+    }
+    
+    for (int i = 0; i<nodes.size(); i++) {
+        auto cur = nodes[i];
+        
+        for (int j = i+1; j<nodes.size(); j++) {
+            auto other = nodes[j];
+            if (oneModify(cur->val, other->val)) {
+                cur->links.push_back(other);
+                other->links.push_back(cur);
+            }
+        }
+    }
+    
+    auto startNode = new LadderGraphNode<string>(start);
+    startNode->step = 1;
+    auto endNode = new LadderGraphNode<string>(end);
+    
+    for (int i = 0; i<dict.size(); i++) {
+        
+        auto cur = nodes[i];
+        if (oneModify(startNode->val, cur->val)) {
+            startNode->links.push_back(cur);
+//            cur->links.push_back(startNode);
+        }
+        if (oneModify(endNode->val, cur->val)) {
+            cur->links.push_back(endNode);
+//            endNode->links.push_back(cur);
+        }
+    }
+    
+    auto border = new  vector<LadderGraphNode<string>*>();
+    border->push_back(startNode);
+    
+    while (!border->empty()) {
+        auto nextBorder = new  vector<LadderGraphNode<string>*>();
+        
+        for (auto iter = border->begin(); iter != border->end(); iter++) {
+            auto node1 = *iter;
+            for (auto iter2 = node1->links.begin(); iter2 != node1->links.end(); iter2++) {
+                auto node2 = *iter2;
+                
+                if (node2 == endNode) {
+                    free(border);
+                    free(nextBorder);
+                    
+                    //逆序取出结果
+//                    vector<string> result = {end};
+//                    auto back = node1;
+//                    while (back != startNode) {
+//                        result.insert(result.begin(), back->val);
+//                        back = back->shortestPre;
+//                    }
+//                    result.insert(result.begin(), start);
+//                    printVectorSting(result);
+                    
+                    return node1->step+1;
+                }
+                
+                if (node2->step < 0) {
+                    node2->step = node1->step+1;
+//                    node2->shortestPre = node1;
+                    
+                    nextBorder->push_back(node2);
+                }
+            }
+        }
+        
+        free(border);
+        border = nextBorder;
+    }
+    
+    free(border);
+    
+    return 0;
+}
+
+//代表一个层级的分叉口，层级指距离开始的长度;
+//使用这个机构就可以把多个分叉抽象成一个结构，配合深度搜索，每一刻只需要保存一个临时变量
+struct CharFork{
+    vector<Point> points;  //每个层级有多个分叉口
+    int pos; //层级大小，也是对应字符在word里的索引
+    
+    CharFork(int pos):pos(pos){};
+};
+
+//检测下一步可行的位置
+inline void checkNextFork(vector<vector<char>> &board, string &word, CharFork *nextFork, int x, int y, int pos, vector<vector<bool>> &found){
+    if (x >= board.size() || y >= board[x].size() || found[x][y]) {
+        return;
+    }
+    if (board[x][y] == word[pos]) {
+        nextFork->points.push_back(Point(x, y));
+    }
+}
+
+//123. 单词搜索
+//1. 从一个图里把树提取出来 2. 一边构建一边遍历，而且使用深度搜索方式
+bool exist(vector<vector<char>> &board, string &word) {
+    
+    if (word.empty()) {
+        return false;
+    }
+    
+    vector<CharFork*> forks;
+    
+    char first = word[0];
+    CharFork *fork = new CharFork(0);
+    
+    for (int i = 0; i<board.size(); i++) {
+        auto row = board[i];
+        for (int j = 0; j<row.size(); j++) {
+            if (row[j] == first) {
+                fork->points.push_back(Point(i, j));
+            }
+        }
+    }
+    
+    if (fork->points.empty()) {
+        return false;
+    }else if (word.size() == 1){
+        return true;
+    }
+    
+    vector<Point> route;
+    vector<vector<bool>> found;
+    
+    for (int i = 0; i<board.size(); i++) {
+        found.push_back(vector<bool>());
+        for (int j = 0; j<board[i].size(); j++) {
+            found[i].push_back(false);
+        }
+    }
+    
+    //curFork是当前最前面一层，forks保存了之前的多层
+    CharFork *curFork = fork;
+    
+    while (1) {
+        
+        while (curFork->points.empty()) {
+            free(curFork);
+            if (forks.empty()) {
+                return false;
+            }
+            curFork = forks.back();
+            forks.pop_back();
+            
+            found[route.back().x][route.back().y] = false;
+            route.pop_back();
+        }
+
+        Point curPoint = curFork->points.back();
+        
+        int nextPos = curFork->pos+1;
+        CharFork *nextFork = new CharFork(nextPos);
+        checkNextFork(board, word, nextFork, curPoint.x+1, curPoint.y, nextPos, found);
+        checkNextFork(board, word, nextFork, curPoint.x-1, curPoint.y, nextPos, found);
+        checkNextFork(board, word, nextFork, curPoint.x, curPoint.y+1, nextPos, found);
+        checkNextFork(board, word, nextFork, curPoint.x, curPoint.y-1, nextPos, found);
+        
+        curFork->points.pop_back();
+        
+        if (!nextFork->points.empty()) {
+            if (nextPos == word.size()-1) {
+                return true;
+            }
+            //把当前的存入，切换到下一层
+            forks.push_back(curFork);
+            curFork = nextFork;
+            
+            route.push_back(curPoint); //可以继续进行，表示这条路还有可能性，才保存
+            found[curPoint.x][curPoint.y] = true;
+        }
+    }
+}
+
+int longestConsecutive(vector<int> &num) {
+    unordered_set<int> exist;
+    for (auto iter = num.begin(); iter != num.end(); iter++) {
+        exist.insert(*iter);
+    }
+    
+    int maxLen = 0;
+    for (auto iter = num.begin(); iter != num.end(); iter++) {
+        
+        int cur = *iter;
+        
+        if (exist.find(cur-1) != exist.end()) {
+            continue;
+        }
+        
+        int len = 0;
+        
+        do {
+            cur++;
+            len++;
+        } while (exist.find(cur) != exist.end());
+        
+        maxLen = max(maxLen, len);
+    }
+    
+    return maxLen;
+}
+
+//125. 背包问题 II
+//递归算法，复杂度O(2^n),因为会有很多的重复,m-A[start]这里，5-3和6-4是一样的。
+int backPackII2(int m, vector<int> &A, vector<int> &V, int start){
+    
+    if (m <= 0) {
+        return 0;
+    }
+    if (start == A.size()-1) {
+        return m >= A[start] ? V[start] : 0;
+    }
+    
+    int save = 0;
+    if (m >= A[start]){
+        save = backPackII2(m-A[start], A, V, start+1)+V[start];
+    }
+    int unsave = backPackII2(m, A, V, start+1);
+    
+    return max(save, unsave);
+}
+
+
+//125. 背包问题 II
+//只依赖上一层条件就可以往下推，所以滚动数组，每次values表示当前条件的结果值
+int backPackII(int m, vector<int> &A, vector<int> &V) {
+    
+    int values[m+1];
+    memset(values, 0, sizeof(values));
+    
+    //每轮存储的选择范围是[0, i]
+    for (int i = 0; i < A.size(); i++) {
+        
+        //需要需靠上一层的低容量数据，所以低容量值不能被干扰，所以从大到小遍历
+        for (int j = m; j >=0; j--) {
+            if (j < A[i]) {  //装不下，值不变
+                continue;
+            }
+            values[j] = max(values[j], values[j-A[i]]+V[i]);
+        }
+        
+//        for (int i = 0; i<= m; i++) {
+//            printf("%d ",values[i]);
+//        }
+//        
+//        printf("\n\n--------------\n");
+    }
+    return values[m];
+}
+
+struct DirectedGraphNode {
+    int label;
+    vector<DirectedGraphNode *> neighbors;
+    DirectedGraphNode(int x) : label(x) {};
+};
+
+template <class T>
+struct GraphNodeFork{
+public:
+    int dep;
+    vector<T> nodes;
+    
+    GraphNodeFork(int dep):dep(dep){};
+};
+
+vector<DirectedGraphNode*> topSort(vector<DirectedGraphNode*>& graph) {
+    unordered_set<DirectedGraphNode*> begin;
+    for (auto iter = graph.begin(); iter != graph.end(); iter++) {
+        begin.insert(*iter);
+    }
+    
+    for (auto iter = graph.begin(); iter != graph.end(); iter++) {
+        
+        auto node = *iter;
+        for (auto iter2 = node->neighbors.begin(); iter2 != node->neighbors.end(); iter2++) {
+            begin.erase(*iter2);
+        }
+    }
+    
+    //curFork是当前最前面一层，forks保存了之前的多层
+    auto curFork = new GraphNodeFork<DirectedGraphNode*>(0);
+    for (auto iter = begin.begin(); iter != begin.end(); iter++) {
+        curFork->nodes.push_back(*iter);
+    }
+    
+    vector<DirectedGraphNode*> route;
+    vector<GraphNodeFork<DirectedGraphNode*> *> forks;
+    
+    while (1) {
+        
+        while (curFork->nodes.empty()) {
+            free(curFork);
+            if (forks.empty()) {  //应该不可能到这里
+                return route;
+            }
+            curFork = forks.back();
+            forks.pop_back();
+        
+            route.pop_back();
+        }
+        
+        auto node = curFork->nodes.back();
+        
+        int nextPos = curFork->dep+1;
+        auto nextFork = new GraphNodeFork<DirectedGraphNode*>(nextPos);
+        for (int i = 0; i<node->neighbors.size(); i++) {
+            auto nbor = node->neighbors[i];
+            
+            //路径里还没来得及加入自身，但自身可能在neighbors里，也要排除
+            if (nbor == node) {
+                return route;
+            }
+            if (find(route.begin(), route.end(),nbor) == route.end()) {
+                nextFork->nodes.push_back(nbor);
+            }
+        }
+        
+        curFork->nodes.pop_back();
+        
+        if (!nextFork->nodes.empty()) {
+            
+            //把当前的存入，切换到下一层
+            forks.push_back(curFork);
+            curFork = nextFork;
+            
+            route.push_back(node); //可以继续进行，表示这条路还有可能性，才保存
+        }else if(route.size() == graph.size()-1){
+            route.push_back(node); //没有进行下去的路了，终结
+            return route;
+        }
+    }
+}
+
+vector<DirectedGraphNode*> topSort2(vector<DirectedGraphNode*> graph) {
+    vector<DirectedGraphNode*> ret;
+    if(graph.empty())
+        return ret;
+    
+    map<DirectedGraphNode*,int> in; //in为入度
+    stack<DirectedGraphNode*>   s;  //保存入度为零的节点
+    for(auto e:graph){
+        for(auto i:e->neighbors)
+            ++in[i];              //记录每个节点的入度
+    }
+    
+    for(auto e:graph)
+        if(0==in[e])
+            s.push(e);         //入度为零的节点入栈
+    
+    while(!s.empty()){        //BFS遍历,搜寻入度为零的节点
+        DirectedGraphNode* cur=s.top();
+        s.pop();             //当前节点出栈时，它的相邻节点入度都减一
+        ret.push_back(cur);
+        for(auto e:cur->neighbors){
+            if(--in[e]==0)    //减一后为零则入栈
+                s.push(e);
+        }
+    }
+    return ret;
+}
+
+vector<ListNode*> rehashing(vector<ListNode*> hashTable) {
+    
+    if (hashTable.empty()) {
+        return hashTable;
+    }
+    
+    long capacity = hashTable.size()*2;
+    vector<ListNode *> result(capacity);
+    
+    for (auto iter = hashTable.begin(); iter != hashTable.end(); iter++) {
+        auto cur = *iter;
+        
+        while (cur) {
+            auto index = cur->val % capacity;
+            if (index < 0) {
+                index += capacity;
+            }
+            
+            ListNode *newList = result[index];
+            if (newList == nullptr) {
+                result[index] = cur;
+            }else{
+                
+                while (newList->next) { //末端保持为空
+                    newList = newList->next;
+                }
+                newList->next = cur;
+            }
+            
+            auto next = cur->next;
+            cur->next = nullptr; //末端保持为空
+            cur = next;
+        }
+    }
+    
+    return result;
+}
+
+//数字组合的树结构是一个奇葩状态，因为数可以重复使用，那么每个节点包含多种使用数量;
+//不是单纯的包含子节点，而是每种不同的子节点选择，自身的贡献值也是变化的
+//因为不同父节点会连接到相同子节点去，所以实际不是树而是图了。
+//跟单词接龙那题结构是类似的，但是那题只需要求最小路径，所以使用广度搜索，而这里是要提取所有的完整路径，需要深度搜索
+template <class T>
+class CombinationNode {
+public:
+    //key是val的使用次数，value是使用了这么多次的val后，对应的下一个界别的解。
+    map<int, CombinationNode*> childern;
+    T val;
+    
+    CombinationNode(T val):val(val){};
+    
+    //把多叉树的路径全部提取出来
+    vector<vector<T>> allRoutes(){
+        vector<vector<T>> routes;
+        
+        if (childern.empty()) {
+            return {{val}};
+        }
+        for (auto iter = childern.begin(); iter != childern.end(); iter++) {
+            int num = iter->first;
+            
+            if (iter->second) {
+                auto subRoutes = iter->second->allRoutes();
+                
+                for (auto iter2 = subRoutes.begin(); iter2 != subRoutes.end(); iter2++) {
+                    for (int i = 0; i<num; i++) {
+                        iter2->push_back(val);
+                    }
+                    routes.push_back(*iter2);
+                }
+            }else{
+                //没有下一级了，路径就是自身的各种类型
+                routes.push_back(vector<int>(num, val));
+            }
+            
+        }
+        
+        return routes;
+    }
+};
+
+//135. 数字组合 背包问题变种
+//相比背包问题复杂很多，主要因为：1. 需求把解输出，而不是求一个最大值，所以必须记录每种情况，然后回溯求解  2.每个数的使用次数不受限，这样导致每个从2分支(不使用或使用0次)状态变成了n分支状态(使用n次)
+vector<vector<int>> combinationSum(vector<int> &candidates, int target) {
+    
+    sort(candidates.begin(), candidates.end());
+    
+    CombinationNode<int>* flag[candidates.size()][target+1];
+    for (int i = 0; i<candidates.size(); i++) {
+        memset(flag[i], 0, sizeof(flag[i]));
+    }
+    
+    //起始边界：多个目标、一个选择值，要么没有解，要么有解也只有一个解。
+    int i = 0, t = 0;
+    while (t <= target) {
+        flag[0][t] = new CombinationNode<int>(candidates[0]);
+        flag[0][t]->childern[i] = nullptr; //没有下一级了
+        i++;
+        t = i*candidates[0];
+    }
+    
+    for (int i = 1; i<candidates.size(); i++) {
+        for (int j = target; j>=0; j--) {
+            
+            auto node = new CombinationNode<int>(candidates[i]);
+            
+            //k是这个数取的个数，t是剩余的目标数
+            int k = 0, t = j;
+            while (t >= 0) {
+                
+                if (flag[i-1][t]) {
+                    node->childern[k] = flag[i-1][t];
+                }
+                k++;
+                t = j - candidates[i]*k;
+            }
+            
+            if (node->childern.empty()) {  //下级无解，这一节点也就不存了
+                free(node);
+            }else{
+                flag[i][j] = node;
+            }
+        }
+    }
+    
+    //从后往前回溯找解，路径模型是一个有向图，但是是特殊的图，只有相邻的两层之间有链接，想象起来起来有点像织的布或者肌肉
+    vector<vector<int>> solutions;
+    
+    if (!flag[candidates.size()-1][target]) {
+        return solutions;
+    }
+    
+    return flag[candidates.size()-1][target]->allRoutes();
+}
+
+template <class T>
+class LinkedGraphNode {
+public:
+    T val;
+    vector<LinkedGraphNode *> links;
+    
+    LinkedGraphNode(T val):val(val){};
+    
+    vector<vector<T>> allRoutes(LinkedGraphNode *end){
+        
+        if (links.empty()) {
+            return {{val}};
+        }
+        
+        vector<vector<T>> routes;
+        
+        for (auto iter = links.begin(); iter != links.end(); iter++) {
+            auto subRoutes = iter->allRoutes();
+            
+            for (auto iter2 = subRoutes.begin(); iter2 != subRoutes.end(); iter2++) {
+                iter2->push_back(val);
+                routes.push_back(*iter2);
+            }
+        }
+        
+        return routes;
+    }
+};
+
+vector<vector<string>> partition(string &s, bool **routes, int start, int end){
+    
+    vector<vector<string>> result;
+    
+    if (start == end-1) {
+        return {{string(1,s.back())}}; //只有一个字符
+    }
+    
+    for (int i = start; i<end; i++) {
+        
+        if (routes[start][i]) {
+            
+            if (i == end-1) {
+                result.push_back({s.substr(start, i-start+1)});
+            }else{
+                auto subResult = partition(s, routes, i+1, end);
+                
+                for (auto iter = subResult.begin(); iter != subResult.end(); iter++) {
+                    iter->insert(iter->begin(), s.substr(start, i-start+1));
+                    
+                    result.push_back(*iter);
+                }
+            }
+            
+        }
+    }
+    
+    return result;
+}
+
+vector<vector<string>> partition(string &s) {
+    
+    bool *routes[s.size()];
+    for (int i = 0; i<s.size(); i++) {
+        routes[i] = new bool[s.size()];
+        memset(routes[i], 0, sizeof(bool)*s.size());
+    }
+    
+    //初始化回文标记，因为回文的性质，固定一个中心，从内向外扩散判断，某个长度不是回文，那么之后都不是了。
+    //复杂度n^2,每一对有且仅有一次判断。
+    for (size_t sum = 0; sum <= 2*s.size()-2; sum++) {
+        long left = sum/2, right = sum-left;
+        while (left>= 0 && right <= s.size()) {
+            if (s[left] == s[right]) {
+                routes[left][right] = true;
+            }else{
+                break;
+            }
+            
+            left--;
+            right++;
+        }
+    }
+    
+    return partition(s, routes, 0, (int)s.size());
+}
+
+unsigned long quickPower(int a, int b){
+    unsigned long s = 1;
+    while (b > 0) {
+        if (b & 1) { //奇数
+            s *= a;
+        }
+        
+        a *= a;
+        b >>= 1;
+    }
+    
+    return s;
+}
+
+int fastPower(int a, int b, int n){
+    int s = 1;
+    while (b > 0) {
+        if (b & 1) { //奇数
+            s *= a%n;
+            s %= n;
+        }
+        
+        a *= a;
+        b >>= 1;
+    }
+    
+    return s;
+}
+
+void sortColors2(vector<int> &colors, int k) {
+    int slot[k];
+    memset(slot, 0, sizeof(slot));
+    
+    for (int i = 0; i<colors.size(); i++) {
+        slot[colors[i]-1]++;
+    }
+    
+    int j = 0;
+    for (int i = 0; i<k; i++) {
+        for (int x = 0; x<slot[i]; x++) {
+            colors[j] = i+1;
+            j++;
+        }
+    }
+}
+
+void rerange(vector<int> &A) {
+    int cur = 0,pos = 0,nega=0;
+    
+    int positiveCount = 0;
+    for (int i = 0; i<A.size(); i++) {
+        if (A[i] < 0) {
+            positiveCount-=1;
+        }else{
+            positiveCount+=1;
+        }
+    }
+    
+    //0 -1 true, 1 false
+    bool positive = positiveCount <= 0;
+    
+    while (cur < A.size()) {
+        positive = !positive;
+        if (positive) {
+            if (A[cur] < 0) {
+                while (A[pos]<0 && pos < A.size()) {
+                    pos++;
+                }
+                auto temp = A[cur];
+                A[cur] = A[pos];
+                A[pos] = temp;
+            }
+            pos++;
+            if (nega<=cur){
+                nega = cur+1;
+            }
+        }else{
+            if (A[cur] > 0) {
+                while (A[nega]>0 && nega < A.size()) {
+                    nega++;
+                }
+                auto temp = A[cur];
+                A[cur] = A[nega];
+                A[nega] = temp;
+            }
+            
+            nega++;
+            if (pos<=cur) {
+                pos = cur+1;
+            }
+        }
+        
+        cur++;
+    }
+}
+
+void sortColors(vector<int> &nums) {
+    int num1=0, num2=0, num3 = 0;
+    
+    for (int i = 0; i<nums.size(); i++) {
+        if (nums[i] == 0) {
+            num1++;
+        }else if (nums[i] == 1){
+            num2++;
+        }else{
+            num3++;
+        }
+    }
+    
+    int i = 0;
+    for (int j = 0; j<num1; j++, i++) {
+        nums[i] = 0;
+    }
+    
+    for (int j = 0; j<num2; j++, i++) {
+        nums[i] = 1;
+    }
+    
+    for (int j = 0; j<num3; j++, i++) {
+        nums[i] = 2;
+    }
+}
+
+int maxProfit(vector<int> &diff, int start, int *maxInclude) {
+    if (start == diff.size()-1) {
+        *maxInclude = diff[start];
+        return diff[start];
+    }
+    
+    int includeCur = 0;
+    auto subResult = maxProfit(diff, start+1, &includeCur);
+    
+    if (includeCur>0) {
+        includeCur += diff[start];
+    }else{
+        includeCur = diff[start];
+    }
+    
+//    printf("[%d] %d\n",start,includeCur);
+    
+    *maxInclude = includeCur;
+    
+    return max(subResult, includeCur);
+}
+
+int maxProfit(vector<int> &prices) {
+    if (prices.size() < 2) {
+        return 0;
+    }
+    vector<int> diff;
+    
+    for (int i=0; i<prices.size()-1; i++) {
+        diff.push_back(prices[i+1]-prices[i]);
+    }
+    
+//    printVectorIntOneLine(diff);
+    
+    int i;
+    return max(maxProfit(diff, 0, &i), 0);
+}
+
+int findMin(vector<int> &nums) {
+    if (nums.front() <= nums.back()) {
+        return nums.front();
+    }
+    if (nums[nums.size()-2] > nums.back()) {
+        return nums.back();
+    }
+    
+    int left = 0, right = (int)nums.size()-2;
+    int stan = nums.back();
+    while (left < right-1) {
+        int mid = left+(right-left)/2;
+        
+        if (nums[mid] < stan) {
+            right = mid;
+        }else{
+            left = mid;
+        }
+    }
+    
+    return nums[right];
+}
+
+int findMin2(vector<int> &nums) {
+    if (nums.size() == 1) {
+        return nums.front();
+    }
+    
+    //左边大于，右边小于等于
+    int left = 0, right = (int)nums.size()-1;
+    int stan = nums.back();
+    
+    while (left < right-1) {
+        if (nums[left] == stan) {
+            left++;
+        }else{
+            break;
+        }
+    }
+    
+    if (nums[left] < stan) {
+        return nums[left];
+    }
+    
+    while (left < right-1) {
+        
+        int mid = left+(right-left)/2;
+        
+        if (nums[mid] <= stan) {
+            right = mid;
+        }else if (nums[mid] > stan){
+            left = mid;
+        }
+    }
+    
+    return nums[right];
+}
+
+void rotate(vector<vector<int>>& matrix)
+{
+    if (matrix.empty())
+        return;
+    for (int x = 0; x < (matrix.size()-1) / 2+1; ++x)
+    {
+        auto revx = matrix.size()-x-1;
+        for (int y = 0; y < matrix.size() / 2; ++y)
+        {
+            auto revy = matrix.size()-y-1;
+            int tmp = matrix[y][x];
+            matrix[y][x] = matrix[revx][y];
+            matrix[revx][y] = matrix[revy][revx];
+            matrix[revy][revx] = matrix[x][revy];
+            matrix[x][revy] = tmp;
+        }
+    }
+}
+
+void setZeroes(vector<vector<int>> &matrix) {
+    if (matrix.empty()) {
+        return;
+    }
+    
+    int m = matrix.size();
+    int n = matrix.front().size();
+    
+    bool firstHZero = false;
+    for (int j = 0; j<n; j++) {
+        if (!matrix[0][j]) {
+            firstHZero = true;
+            break;
+        }
+    }
+    
+    bool firstVZero = false;
+    for (int i = 0; i<m; i++) {
+        if (!matrix[i][0]) {
+            firstVZero = true;
+            break;
+        }
+    }
+    
+    for (int i = 1; i<m; i++) {
+        for (int j = 1; j<n; j++) {
+            if (!matrix[i][j]) {
+                matrix[0][j] = 0;
+                matrix[i][0] = 0;
+            }
+        }
+    }
+    
+    for (int i = 1; i<m; i++) {
+        if (!matrix[i][0]) {
+            for (int j = 1; j<n; j++) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    
+    for (int j = 1; j<n; j++) {
+        if (!matrix[0][j]) {
+            for (int i = 1; i<m; i++) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    
+    if (firstHZero) {
+        for (int j = 0; j<n; j++) {
+            matrix[0][j] = 0;
+        }
+    }
+    
+    if (firstVZero) {
+        for (int i = 0; i<m; i++) {
+            matrix[i][0] = 0;
+        }
+    }
+    
+}
 
 int main(int argc, const char * argv[]) {
     
-    vector<int> vals = {};
+    vector<vector<int>> nums = {{-4,-2147483648,6,-7,0}, {-8,6,-8,-6,0}, {2147483647,2,-9,-6,-10}};
+    setZeroes(nums);
     
-    
-    auto result = jump(vals);
-    
-    
+    printTwoDVector(nums);
     
     return 0;
 }

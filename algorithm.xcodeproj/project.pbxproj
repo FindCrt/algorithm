@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		18461CF6209C146C008FF3CE /* TopK.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18461CF4209C146C008FF3CE /* TopK.cpp */; };
 		184F58D81F43E38500ADC12A /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 184F58D71F43E38500ADC12A /* main.cpp */; };
 		18715FDB1FCCFF9F008D69BC /* heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18715FD91FCCFF9F008D69BC /* heap.cpp */; };
 		18941B4B1FC8138700E7F3F5 /* TFSort.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18941B4A1FC8138700E7F3F5 /* TFSort.cpp */; };
@@ -25,6 +26,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		18226FD2209ABD71001C461E /* page1.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = page1.hpp; sourceTree = "<group>"; };
+		18461CF4209C146C008FF3CE /* TopK.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TopK.cpp; sourceTree = "<group>"; };
+		18461CF5209C146C008FF3CE /* TopK.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TopK.hpp; sourceTree = "<group>"; };
 		184F58D41F43E38500ADC12A /* algorithm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = algorithm; sourceTree = BUILT_PRODUCTS_DIR; };
 		184F58D71F43E38500ADC12A /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		18715FD91FCCFF9F008D69BC /* heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heap.cpp; sourceTree = "<group>"; };
@@ -64,12 +68,15 @@
 		184F58D61F43E38500ADC12A /* algorithm */ = {
 			isa = PBXGroup;
 			children = (
+				18226FD2209ABD71001C461E /* page1.hpp */,
 				184F58D71F43E38500ADC12A /* main.cpp */,
 				18941B4A1FC8138700E7F3F5 /* TFSort.cpp */,
 				18941B4C1FC8167900E7F3F5 /* TFSort.h */,
 				18715FD91FCCFF9F008D69BC /* heap.cpp */,
 				18715FDA1FCCFF9F008D69BC /* heap.hpp */,
 				187FDE82202E8AC0001EE759 /* MinStack.hpp */,
+				18461CF4209C146C008FF3CE /* TopK.cpp */,
+				18461CF5209C146C008FF3CE /* TopK.hpp */,
 			);
 			path = algorithm;
 			sourceTree = "<group>";
@@ -134,6 +141,7 @@
 				18941B4B1FC8138700E7F3F5 /* TFSort.cpp in Sources */,
 				184F58D81F43E38500ADC12A /* main.cpp in Sources */,
 				18715FDB1FCCFF9F008D69BC /* heap.cpp in Sources */,
+				18461CF6209C146C008FF3CE /* TopK.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

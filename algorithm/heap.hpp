@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 
@@ -23,11 +24,16 @@ using namespace std;
 /** 逻辑是按照最小堆的来写的，这时比较函数是按按照a>b返回1来的。这样只要比较函数的逻辑翻转，就可以直接变成最大堆，只需要各处的处理逻辑保持一致 */
 static size_t maxInitAllocSize = 1024;
 namespace TFDataStruct {
+    
+    static int TFHeapComparePreUp = -1;     //让比较中的两个元素的前一个上浮
+    static int TFHeapComparePreDown = 1;    //让比较中的两个元素的前一个下沉
+    static int TFHeapCompareEqual = 0;      //两者相等
+    
     template<class T>
     class heap {
         typedef int (*CompareFunc)(T a, T b);
         size_t _validSize = 0;      //实际有值得节点数
-        size_t _limitSize = 0;      //限制节点数，超过这个数量，再添加就需要替换掉一个
+        size_t _limitSize = ULONG_MAX;      //限制节点数，超过这个数量，再添加就需要替换掉一个
         size_t _mallocSize = 8;     //申请的节点数
         
         
@@ -110,7 +116,7 @@ namespace TFDataStruct {
     public:
         
         
-        heap(CompareFunc compare, size_t limitSize = 0, vector<T> *vec = nullptr){
+        heap(CompareFunc compare, size_t limitSize = ULONG_MAX, vector<T> *vec = nullptr){
             
             _limitSize = limitSize;
             if (limitSize > 0) {
@@ -128,7 +134,7 @@ namespace TFDataStruct {
             }
         };
         
-        heap(bool isMinHeap, size_t limitSize = 0, vector<T> *vec = nullptr){
+        heap(bool isMinHeap, size_t limitSize = ULONG_MAX, vector<T> *vec = nullptr){
             new (this) heap(isMinHeap ? defaultMinHeapCompare : defaultMaxHeapCompare, limitSize, vec);
         }
         
@@ -170,6 +176,23 @@ namespace TFDataStruct {
         void replace(T node, size_t index){
             //TODO: index可能越界
             _datas[index] = node;
+            update(node, index);
+        }
+        
+        //某个节点的数据改变，更新它的位置
+        void update(T node, long index = -1){
+            if (index < 0) {
+                for (int i = 0; i<_validSize; i++) {
+                    if (_datas[i] == node) {
+                        index = i;
+                    }
+                }
+                
+                if (index < 0) {
+                    printf("未找到要更新节点\n");
+                    return;
+                }
+            }
             if (index > 0 && _compare(node, _datas[parentIndex(index)]) < 0) { //按最小堆逻辑，小于，则上浮
                 
                 floatUp_compare(index);

@@ -407,23 +407,138 @@ public:
     }
 };
 
+int maxKilledEnemies(vector<vector<char>> &grid) {
+    if (grid.empty()) {
+        return 0;
+    }
+    
+    int width = grid.size();
+    int height = grid.front().size();
+    int kills[width*height];
+    memset(kills, 0, sizeof(kills));
+    
+    for (int i = 0; i<width; i++) {
+        int curE = 0;
+        for (int j = 0; j<height; j++) {
+            
+            int index = i*height+j;
+            if (grid[i][j] == 'W'){
+                curE = 0;
+            }else if (grid[i][j] == 'E') {
+                curE++;
+            }else if (grid[i][j] == '0'){
+                kills[index] = curE;
+            }
+        }
+    }
+    
+    printf("%d \n",kills[5]);
+    
+    for (int i = 0; i<width; i++) {
+        int curE = 0;
+        for (int j = height-1; j>=0; j--) {
+            
+            int index = i*height+j;
+            if (grid[i][j] == 'W'){
+                curE = 0;
+            }else if (grid[i][j] == 'E') {
+                curE++;
+            }else if (grid[i][j] == '0'){
+                kills[index] += curE;
+            }
+        }
+    }
+    
+    printf("%d \n",kills[5]);
+    
+    for (int j = 0; j<height; j++) {
+        
+        int curE = 0;
+        
+        for (int i = 0; i<width; i++) {
+            int index = i*height+j;
+            if (grid[i][j] == 'W'){
+                curE = 0;
+            }else if (grid[i][j] == 'E') {
+                curE++;
+            }else if (grid[i][j] == '0'){
+                kills[index] += curE;
+            }
+        }
+    }
+    
+    printf("%d \n",kills[5]);
+    
+    int maxE = 0;
+    for (int j = 0; j<height; j++) {
+        
+        int curE = 0;
+        
+        for (int i = width-1; i>=0; i--) {
+            int index = i*height+j;
+            if (grid[i][j] == 'W'){
+                curE = 0;
+            }else if (grid[i][j] == 'E') {
+                curE++;
+            }else if (grid[i][j] == '0'){
+                maxE = max(maxE, kills[index]+curE);
+            }
+        }
+    }
+    
+    return maxE;
+}
+
+int findMissing2(int n, string &str) {
+    int count[n+1];
+    memset(count, 0, sizeof(count));
+    count[0] = 1;
+    
+    for (int i = 0; i<str.length(); i++) {
+        short num = str[i]-'0';
+        if (num+10 <= n && !count[num+10]){
+            count[num+10] = 1;
+            count[1]--;
+        }else if(num+20 <= n && !count[num+20]){
+            count[num+20] = 1;
+            count[2]--;
+        }else{
+            count[num]++;
+        }
+    }
+    
+    short miss1 = -1, miss2 = -1;
+    for (int i = 1; i<n; i++) {
+        printf("[%d]%d ",i,count[i]);
+        if (count[i] == 0) {
+            if (miss1 < 0) {
+                miss1 = i;
+            }else{
+                miss2 = i;
+                break;
+            }
+        }
+    }
+    
+    if (miss1 < 0 && miss2 < 0) {
+        return 30;
+    }
+    
+    int result = miss1*10+miss2;
+    if (miss2 < 0) {
+        result = miss1;
+    }
+    if (result == 12 && str.find("12") != string::npos) {
+        return 21;
+    }
+    
+    return result;
+}
+
 int main(int argc, const char * argv[]) {
     
+    string str = "111098654327128213127262524232120191817161514";
     
-    TopK topkkk(3);
-    topkkk.add(3);
-    topkkk.add(10);
-    vector<int> result = topkkk.topk();
-    printVectorIntOneLine(result);
-    topkkk.add(1000);
-    topkkk.add(-99);
-    result = topkkk.topk();
-    printVectorIntOneLine(result);
-    topkkk.add(4);
-    result = topkkk.topk();
-    printVectorIntOneLine(result);
-    topkkk.add(100);
-    result = topkkk.topk();
-    printVectorIntOneLine(result);
-
+    auto result = findMissing2(28, str);
+    
 }

@@ -31,11 +31,15 @@
 		18461CF5209C146C008FF3CE /* TopK.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TopK.hpp; sourceTree = "<group>"; };
 		184F58D41F43E38500ADC12A /* algorithm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = algorithm; sourceTree = BUILT_PRODUCTS_DIR; };
 		184F58D71F43E38500ADC12A /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		186F446B20A13A8F00B4E68F /* Graph.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Graph.hpp; sourceTree = "<group>"; };
 		18715FD91FCCFF9F008D69BC /* heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heap.cpp; sourceTree = "<group>"; };
 		18715FDA1FCCFF9F008D69BC /* heap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = heap.hpp; sourceTree = "<group>"; };
+		1871A06820ABC25100C2F11C /* BinaryTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BinaryTree.hpp; sourceTree = "<group>"; };
 		187FDE82202E8AC0001EE759 /* MinStack.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MinStack.hpp; sourceTree = "<group>"; };
+		1892CA9820AABB03007D7872 /* MultiwayTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MultiwayTree.hpp; sourceTree = "<group>"; };
 		18941B4A1FC8138700E7F3F5 /* TFSort.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TFSort.cpp; sourceTree = "<group>"; };
 		18941B4C1FC8167900E7F3F5 /* TFSort.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TFSort.h; sourceTree = "<group>"; };
+		18A5333420B3A58A004B9F32 /* page2.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = page2.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,8 +72,9 @@
 		184F58D61F43E38500ADC12A /* algorithm */ = {
 			isa = PBXGroup;
 			children = (
-				18226FD2209ABD71001C461E /* page1.hpp */,
 				184F58D71F43E38500ADC12A /* main.cpp */,
+				18226FD2209ABD71001C461E /* page1.hpp */,
+				18A5333420B3A58A004B9F32 /* page2.hpp */,
 				18941B4A1FC8138700E7F3F5 /* TFSort.cpp */,
 				18941B4C1FC8167900E7F3F5 /* TFSort.h */,
 				18715FD91FCCFF9F008D69BC /* heap.cpp */,
@@ -77,6 +82,9 @@
 				187FDE82202E8AC0001EE759 /* MinStack.hpp */,
 				18461CF4209C146C008FF3CE /* TopK.cpp */,
 				18461CF5209C146C008FF3CE /* TopK.hpp */,
+				186F446B20A13A8F00B4E68F /* Graph.hpp */,
+				1892CA9820AABB03007D7872 /* MultiwayTree.hpp */,
+				1871A06820ABC25100C2F11C /* BinaryTree.hpp */,
 			);
 			path = algorithm;
 			sourceTree = "<group>";

@@ -22,6 +22,7 @@
 
 #include "TFSort.h"
 #include "MinStack.hpp"
+#include "BinaryTree.hpp"
 
 class ListNode {
 public:
@@ -67,15 +68,7 @@ public:
     }
 };
 
-class TreeNode{
-public:
-    int val;
-    TreeNode *left, *right;
-    TreeNode(int val){
-        this->val = val;
-        this->left = this->right = NULL;
-    }
-};
+
 
 int addDigits(int num) {
     
@@ -2268,9 +2261,22 @@ int kthLargestElement(int n, vector<int> &nums) {
 
 #pragma mark - 调试函数
 
-void printVectorSting(vector<string> &vector){
+void printVectorString(vector<string> &vector){
     for (int i = 0; i<vector.size(); i++) {
         cout<<vector[i]<<" "<<endl;
+    }
+}
+
+void printVectorStringOneLine(vector<string> &vector){
+    for (int i = 0; i<vector.size(); i++) {
+        cout<<vector[i]<<" ";
+    }
+    cout<<endl;
+}
+
+void printTwoDVectorString(vector<vector<string>> &vector){
+    for (int i = 0; i<vector.size(); i++) {
+        printVectorStringOneLine(vector[i]);
     }
 }
 
@@ -2280,13 +2286,8 @@ void printVectorInt(vector<int> &vector){
     }
 }
 
-void printVectorStingOneLine(vector<string> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<" ";
-    }
-}
-
-void printVectorIntOneLine(vector<int> &vector){
+template<class T>
+void printVectorIntOneLine(vector<T> &vector){
     for (int i = 0; i<vector.size(); i++) {
         cout<<vector[i]<<",";
     }
@@ -4552,7 +4553,7 @@ int ladderLength(string &start, string &end, unordered_set<string> &dict) {
                     //                        back = back->shortestPre;
                     //                    }
                     //                    result.insert(result.begin(), start);
-                    //                    printVectorSting(result);
+                    //                    printVectorString(result);
                     
                     return node1->step+1;
                 }
@@ -5589,7 +5590,7 @@ string DeleteDigits(string &A, int k) {
         
         solu[0] = A.substr(i,size);
         
-        //        printVectorSting(solu);
+        //        printVectorString(solu);
         //        printf("\n----------\n");
     }
     

@@ -555,29 +555,244 @@ int shortestDistance(vector<vector<int>> &maze, vector<int> &start, vector<int> 
     }
 }
 
-int main(int argc, const char * argv[]) {
+int intersectionOfArrays(vector<vector<int>> &arrs) {
+    int minRight = INT_MAX, maxLeft = INT_MIN;
+    int arrCount = arrs.size();
     
-    vector<vector<int>> maze = {
-        {0,0,0,0,1,0,0},
-        {0,0,1,0,0,0,0},
-        {0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,1},
-        {0,1,0,0,0,0,0},
-        {0,0,0,1,0,0,0},
-        {0,0,0,0,0,0,0},
-        {0,0,1,0,0,0,1},
-        {0,0,0,0,1,0,0}
+    for (auto &arr : arrs){
+        if (arr.empty()) {
+            return 0;
+        }
+        int left = INT_MAX, right = INT_MIN;
+        for (auto &num : arr){
+            left = min(left, num);
+            right = max(right, num);
+        }
+        minRight = min(minRight, right);
+        maxLeft = max(maxLeft, left);
+    }
+    
+    if (minRight < maxLeft) {
+        return 0;
+    }
+    
+    int size = minRight-maxLeft+1;
+    short count[size];
+    memset(count, 0, sizeof(count));
+    
+    for (auto &arr : arrs){
+        for (auto &num : arr){
+            if (num>=maxLeft && num<=minRight) {
+                count[num-maxLeft]++;
+            }
+        }
+    }
+    
+    int result = 0;
+    for (int i = 0; i<size; i++) {
+        if (count[i] == arrCount) {
+            result++;
+        }
+    }
+    
+    return result;
+}
+
+static short reorderedAlphabet[26];
+bool wordSortComp(const string &str1, const string str2){
+    auto iter1 = str1.begin(), iter2 = str2.begin();
+    while (iter1 != str1.end() && iter2 != str2.end()) {
+        if (*iter1 == *iter2) {
+            iter1++;
+            iter2++;
+        }else{
+            return reorderedAlphabet[*iter1-'a'] < reorderedAlphabet[*iter2-'a'];
+        }
+    }
+    
+    return str1.size() <= str2.size();
+}
+
+vector<string> wordSort(string &alphabet, vector<string> &words) {
+    int order = 0;
+    for (auto &c : alphabet){
+        reorderedAlphabet[c-'a'] = order++;
+    }
+    
+    sort(words.begin(), words.end(), wordSortComp);
+    return words;
+}
+
+//二分法找到开始时间和结束时间落在的区域，inside为true代表落在上线区间内，start表示查询的开始索引，因为后面的时间更晚
+//inline int findPosition(vector<Interval> &seqA, bool *inside, int start){
+//
+//}
+//
+//vector<Interval> timeIntersection(vector<Interval> &seqA, vector<Interval> &seqB) {
+//
+//}
+
+int getSingleNumber(vector<int> &nums) {
+    if (nums.size() == 1 || nums[0] != nums[1]) {
+        return nums.front();
+    }
+    
+    int left = 0, right = (int)nums.size()-1;
+    while (left < right-1) {
+        int mid = left+(right-left)/2 | 1;
+        if (nums[mid] == nums[mid-1]) {
+            left = mid;
+        }else{
+            right = mid-1;
+        }
+    }
+    
+    return nums[right];
+}
+
+int threeSum2(int n) {
+    int result = 0;
+    
+    int sqrtNum = sqrtf(n);
+    for (int i = 0; i<=sqrtNum; i++) {
+        int left = n-i*i;
+        int sqrtNum2 = sqrtf(left/2);
+        int sqetNum3 = sqrtf(left);
+        for (int j = i; j<=sqrtNum2; j++) {
+            int last = left-j*j;
+            int k = sqrtf(last);
+            if (k*k==last) {
+                result++;
+                
+                printf("%d %d %d\n",i,j,k);
+            }
+        }
+    }
+    
+    return result;
+}
+
+int countNumber2(vector<vector<int>> &nums, int left, int top, int right, int bottom){
+    int count = 0;
+    for (int i = left; i<=right; i++) {
+        auto &line = nums[i];
+        for (int j = top; j<=bottom; j++) {
+            int val = line[j];
+            if (line[j]<0) {
+                count++;
+            }
+        }
+    }
+    
+    return count;
+}
+
+int countNumber3(vector<vector<int>> &nums) {
+    if (nums.empty()) {
+        return 0;
+    }
+    
+    int right = 0;
+    auto &line = nums[0];
+    if (line[0]>=0) {
+        return 0;
+    }else if (line.back() < 0){
+        right = line.size()-1;
+    }else{
+        int i = 0, j = (int)line.size()-1;
         
-    };
-    vector<vector<int>> maze2 = {
-        {0,0,1,0,0},
-        {0,0,0,0,0},
-        {0,0,0,1,0},
-        {1,1,0,1,1},
-        {0,0,0,0,0}
-    };
-    vector<int> start = {0, 4};
-    vector<int> dest = {4, 4};
-    auto result = shortestDistance(maze, start, dest);
+        while (i<j-1) {
+            int mid = i+(j-i)/2;
+            if (line[mid]<0) {
+                i = mid;
+            }else{
+                j = mid;
+            }
+        }
+        right = i;
+    }
+    
+    int result = right+1;
+    for (int i = 1; i<nums.size(); i++) {
+        auto &line = nums[i];
+        while (right>=0 && line[right]>=0) {
+            right--;
+        }
+        
+        if (right<0) {
+            break;
+        }
+        result += right+1;
+    }
+    
+    return result;
+}
+
+/*
+ 1.当次的字符，镜像翻转后，1和0对调，加入到后面，如1011 --> 1011+1011的镜像的对调 -->1011+1101的对调 --> 1011+0010 --> 10110010。经过这个操作变为这次新增的字符串
+ 2.然后把当次新增的字符间隔的和上次的结果混合，***+#### --> #*#*#*# ,*表示上次的结果集，#表示这次产生的新字符串
+ 3. 有了上面的操作过程，得到推论：
+ 1) 有两种字符串，一个是当次新增，个数变化为1 2 4 8 ...2^(k-1);另一种是结果集，个数变化为1 3 7 15 ...2^k-1,每次个数增加就是新增字符的个数
+ 2) 经过k次折叠后，总数为2^k-1,这一次产生2^(k-1)个，这次里索引为d的折痕，再经过t次折叠后，索引为index,则：
+ index = (2d+1)*(2^t-1)+2d, 2d是这一次插入到结果集后的索引，包括自己在内的2d+1个字符，每个前面都新增2^t-1，所以折叠了n次后，索引变为:
+ index = 2^(n-k)*(2*d+1)-1, d的范围为[0, 2^(k-1)-1]。
+ 3) 那么对于经过k次折叠后的索引为d的折痕，它的值等于什么？
+     d >= 2^(k-2),等于上一次的2^(k-1)-d-1的值的反值； d < 2^(k-2),就等于上次d的值
+*/
+
+#define GSEndIndex(k, d, n) ((1<<(n-(k)))*(2*(d)+1)-1)
+
+string getString(int n) {
+
+    int total = (1<<n)-1;
+    bool *mem = (bool*)malloc(sizeof(bool)*total);
+    memset(mem, 0, total);
+    
+    int step = total+1, frontC = step>>1;
+    for (int i = 1; i<n; i++) {
+        
+        step >>= 1;
+        frontC >>= 1;
+        
+        for (int j = frontC-1; j<total/2; j+=step) {
+            mem[j] = mem[2*j+1];
+            mem[total-j-1] = !mem[j];
+            
+//            printf("%d-%d\n",j,total-j-1);
+        }
+    }
+    
+    string result(total, '0');
+    int i = 0;
+    for (auto &c : result){
+        c += mem[i];
+//        printf("%d ",mem[i]);
+        i++;
+    }
+//    printf("\n");
+    
+    return result;
+}
+
+//843. 数字翻转
+//做了这么多动态规划的题，这题还是让我惊讶，因为用了动态规划的思路去做后，变得如此简单，逻辑这么简洁！而常人的逻辑去思考，这个问题还挺复杂的
+//动态规划的厉害之处在于：直接在最优解之间建立了联系，直接从k情况的最优解推到k+1情况的最优解，而不用每次都面对k种情况
+int flipDigit(vector<int> &nums) {
+
+    int opera = 0;
+    int oneCount = 0;
+    
+    for (auto iter = nums.rbegin(); iter != nums.rend(); iter++) {
+        if (*iter==1) {
+            oneCount++;
+        }else{
+            opera = min(oneCount, opera+1);
+        }
+    }
+    
+    return opera;
+}
+
+int main(int argc, const char * argv[]) {
     
 }

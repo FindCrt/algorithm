@@ -1096,9 +1096,104 @@ vector<vector<int>> permuteUnique(vector<int> &nums) {
     return result;
 }
 
+struct Compute24Node {
+    int size;
+    int first;
+    int second;
+    int ope = -1;
+    
+    Compute24Node(int size, int first, int second):size(size),first(first),second(second){};
+};
+
+inline double operateTwoNum(double num1, double num2, int op){
+    switch (op) {
+        case 0:
+            return num1+num2;
+            break;
+        case 1:
+            return num1-num2;
+            break;
+        case 2:
+            return num2-num1;
+            break;
+        case 3:
+            return num1*num2;
+            break;
+        case 4:
+            return num1/num2;
+            break;
+        case 5:
+            return num2/num1;
+            break;
+            
+        default:
+            break;
+    }
+    return 0;
+}
+
+static int compute24Time = 1;
+//24 Game ，这题用深度搜索的角度写挺有意思
+bool compute24(vector<double> &nums) {
+
+    vector<double> nums3(3,0), nums2(2,0);
+    stack<Compute24Node> path;
+    path.push(Compute24Node(4, 0, 1));
+    
+    while (1) {
+        
+        Compute24Node &curNode = path.top();
+        auto &curNums = (curNode.size == 4?nums:(curNode.size==3?nums3:nums2));
+        
+        if (curNode.ope < 5) { //加减乘除4种，但减和除有前后区别，再加两种
+            curNode.ope++;
+        }else{
+            if (curNode.second < curNode.size-1) {
+                curNode.second++;
+                curNode.ope = 0;
+            }else if(curNode.first < curNode.size-2){
+                curNode.first++;
+                curNode.second = curNode.first+1;
+                curNode.ope = 0;
+            }else{
+                path.pop();
+                if (path.empty()) {
+                    break;
+                }
+                continue;
+            }
+        }
+        
+        auto operateNum = operateTwoNum(curNums[curNode.first], curNums[curNode.second], curNode.ope);
+        if (curNode.size == 2) {
+            if (abs(operateNum-24) < 1E5) {
+                return true;
+            }else{
+                continue;
+            }
+        }
+        
+        auto &nextNums = curNode.size == 4 ? nums3:nums2;
+        nextNums[0] = operateNum;
+        
+        int index = 1;
+        for (int i = 0; i<curNums.size(); i++) {
+            if (i != curNode.first && i!=curNode.second) {
+                nextNums[index] = curNums[i];
+                index++;
+            }
+        }
+        
+        path.push(Compute24Node(curNode.size-1, 0, 1));
+        
+    }
+    
+    return false;
+}
+
 int main(int argc, const char * argv[]) {
     
-    vector<int> nums = {1,2,2};
-    auto result = permuteUnique2(nums);
-    printTwoDVector(result);
+    vector<double> nums = {3,3,8,8};
+    auto result = compute24(nums);
+    
 }

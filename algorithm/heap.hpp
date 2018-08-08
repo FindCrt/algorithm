@@ -143,7 +143,7 @@ namespace TFDataStruct {
         }
         
         size_t getLimitSize(){
-            return _validSize;
+            return _limitSize;
         }
         
         bool isEmpty(){

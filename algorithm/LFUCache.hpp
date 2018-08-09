@@ -62,11 +62,19 @@ class LFUCache {
             if (preRow->pre) preRow->pre->next = preRow;
         }
         
-        removeKeyNode(node, true);
+        removeKeyNode(node);
+        if (node->row->keyHead == nullptr && node->row == lastRow) {
+            delete node->row;
+            lastRow = preRow;
+        }
         insertNodeToFront(node, preRow);
     }
     
     inline void insertNodeToFront(KeyNode *node, RowNode *row){
+        if (row->keyHead == node) {
+            return;
+        }
+        
         node->next = row->keyHead;
         node->pre = nullptr;
         
@@ -80,32 +88,20 @@ class LFUCache {
         node->row = row;
     }
     
-    inline void removeKeyNode(KeyNode *node, bool autoRemoveRow = false){
+    inline void removeKeyNode(KeyNode *node){
         
         if(node->pre) node->pre->next = node->next;
         if(node->next) node->next->pre = node->pre;
         
         if (node->row->keyHead == node) {
             if (node->row->keyTail == node){
-                if (autoRemoveRow) {
-                    removeRow(node->row);
-                }else{
-                    node->row->keyTail = node->row->keyHead = nullptr;
-                }
+                node->row->keyTail = node->row->keyHead = nullptr;
             }else{
                 node->row->keyHead = node->next;
             }
         }else if (node->row->keyTail == node){
             node->row->keyTail = node->pre;
         }
-    }
-    
-    inline void removeRow(RowNode *row){
-        if (row->next) row->next->pre = row->pre;
-        if (row->pre) row->pre->next = row->next;
-        
-        if (row == lastRow) lastRow = row->pre;
-        delete row;
     }
     
 public:
@@ -125,40 +121,29 @@ public:
         }
         
         KeyNode *newNode = nullptr;
-        if (lastRow->time == 1) {
-            if (storedSize == capacity) { //满了，解除最后一个，修改值作为新节点
-                auto lastNode = lastRow->keyTail;
-                removeKeyNode(lastNode);
-                
-                newNode = lastNode;
+        if (storedSize == capacity) { //满了，解除最后一个，修改值作为新节点
+            newNode = lastRow->keyTail;
+            removeKeyNode(lastRow->keyTail);
+            
+            store.erase(newNode->key);
+            newNode->key = key;
+            newNode->value = value;
+            
+            if (lastRow->keyHead == nullptr) {
+                lastRow->time = 1;
             }
         }else{
-            if (storedSize == capacity && lastRow->keyTail == lastRow->keyHead) { //满了，解除最后一个，修改值作为新节点
-                
-                //最后一行退化
-                lastRow->time = 1;
-                newNode = lastRow->keyTail;
-            }else{
-                
-                if (storedSize == capacity) {
-                    removeKeyNode(lastRow->keyTail);
-                    newNode = lastRow->keyTail;
-                }
-                
-                auto newLast = new RowNode(1);
-                newLast->pre = lastRow;
-                lastRow->next = newLast;
-                
-                lastRow = newLast;
-            }
-        }
-        
-        if (!newNode){
             newNode = new KeyNode(key, value, lastRow);
             storedSize++;
         }
-        newNode->key = key;
-        newNode->value = value;
+        
+        if (lastRow->time != 1) {
+            auto newLast = new RowNode(1);
+            newLast->pre = lastRow;
+            lastRow->next = newLast;
+            
+            lastRow = newLast;
+        }
         
         store[key] = newNode;
         insertNodeToFront(newNode, lastRow);
@@ -175,8 +160,6 @@ public:
         bringForward(find);
         
         show();
-        
-        printf("\n>>>>>>>>>>>>>>>>>%d\n",find->value);
         return find->value;
     }
     

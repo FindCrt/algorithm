@@ -139,14 +139,24 @@ int maxSubArray(vector<int> &nums, int k) {
 
 #define LFUCache(n) auto cache = LFUCache(n);
 #define set(a,b) cache.set(a,b);
-#define get(a) cache.get(a);
+#define get(a) printf("get(%d) %d\n",a,cache.get(a));
 
 int main(int argc, const char * argv[]) {
     
-    LFUCache(1)
-    set(2, 1)
+    LFUCache(3)
+    set(1, 10)
+    set(2, 20)
+    set(3, 30)
+    get(1)
+    set(4, 40)
+    get(4)
+    get(3)
     get(2)
-    set(3, 2)
+    get(1)
+    set(5, 50)
+    get(1)
     get(2)
     get(3)
+    get(4)
+    get(5)
 }

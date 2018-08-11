@@ -137,26 +137,56 @@ int maxSubArray(vector<int> &nums, int k) {
     return results[0][k];
 }
 
+#define INT_MAX_STR "2147483647"
+#define INT_MIN_STR "-2147483648"
+
+int atoi(string &str) {
+    if (str.empty()) {
+        return 0;
+    }
+    
+    //去除头空格
+    int start = 0;
+    while (str[start] == ' ') {
+        start++;
+    }
+    
+    bool postive = str[start] != '-';
+    if (!postive || str[start] == '+') {
+        start += 1;
+    }
+    
+    //检测非法
+    int end = start;
+    while (end<str.length() && str[end] <= '9' && str[end] >= '0') {
+        end++;
+    }
+    
+    int length = end-start;
+    if (length > 10 || (length == 10 && str.substr(start,length) > INT_MAX_STR)) {
+        return postive?INT_MAX:INT_MIN;
+    }
+    
+    int result = 0;
+    int bit = 1;
+    for (int i = end-1;i>=start;i--){
+        result += bit*(str[i]-'0');
+        bit*=10;
+    }
+    
+    if (!postive) {
+        result *= -1;
+    }
+    
+    return result;
+}
+
 #define LFUCache(n) auto cache = LFUCache(n);
 #define set(a,b) cache.set(a,b);
 #define get(a) printf("get(%d) %d\n",a,cache.get(a));
 
 int main(int argc, const char * argv[]) {
-    
-    LFUCache(3)
-    set(1, 10)
-    set(2, 20)
-    set(3, 30)
-    get(1)
-    set(4, 40)
-    get(4)
-    get(3)
-    get(2)
-    get(1)
-    set(5, 50)
-    get(1)
-    get(2)
-    get(3)
-    get(4)
-    get(5)
+
+    string str = "    -2147483649.43.434lintcode";
+    printf("%d\n",atoi(str));
 }

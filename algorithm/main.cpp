@@ -181,12 +181,71 @@ int atoi(string &str) {
     return result;
 }
 
+//86. 二叉查找树迭代器
+//O(h)的空间复杂度实现思路是，用一个h长度的栈来存储从root到当前节点的路径
+//O(1)空间复杂度的思路是，把left节点指向parent,因为是中序遍历，使用深度搜索，搜索到某个节点时，左节点已经不需要了
+class BSTIterator {
+    TreeNode *cur = new TreeNode(0);
+    TreeNode *parent = nullptr;
+    
+    inline void findTreeFirst(){
+        auto left = cur->left;
+        cur->left = parent;
+        
+        while (left) {
+            parent = cur;
+            cur = left;
+            left = cur->left;
+            cur->left = parent;
+        }
+    }
+    
+public:
+    
+    BSTIterator(TreeNode * root) {
+        cur->right = root;
+    }
+
+    bool hasNext() {
+        if (cur->right) {
+            return true;
+        }
+        auto check = cur;
+        while (check->left && check->left->right == check) {
+            check = check->left; //实际是去到parent
+        }
+        return check->left != nullptr;
+    }
+
+    TreeNode * next() {
+        if (cur->right) {
+            parent = cur;
+            cur = cur->right;
+            findTreeFirst();
+        }else{
+            //cur是右孩子，就要一直向上追溯
+            while (cur->left && cur->left->right == cur) {
+                cur = cur->left; //实际是去到parent
+            }
+            cur = cur->left;
+        }
+        
+        return cur;
+    }
+};
+
 #define LFUCache(n) auto cache = LFUCache(n);
 #define set(a,b) cache.set(a,b);
 #define get(a) printf("get(%d) %d\n",a,cache.get(a));
 
 int main(int argc, const char * argv[]) {
 
-    string str = "    -2147483649.43.434lintcode";
-    printf("%d\n",atoi(str));
+    vector<string> nodeChars = {"10","1","11","#","6","#","12"};
+    TreeNode *root = TreeNode::createWithArray(nodeChars);
+    
+    BSTIterator iter = BSTIterator(root);
+    while (iter.hasNext()) {
+        printf("%d ",iter.next()->val);
+    }
+    printf("\n");
 }

@@ -23,6 +23,7 @@
 #include "TFSort.h"
 #include "MinStack.hpp"
 #include "BinaryTree.hpp"
+#include "CommonStructs.hpp"
 
 class ListNode {
 public:
@@ -1229,15 +1230,6 @@ bool isOdd(int num){
     return num & 1;
 }
 
-class Interval {
-public:
-    int start, end;
-    Interval(int start, int end) {
-        this->start = start;
-        this->end = end;
-    }
-};
-
 bool intervalLess(Interval &a, Interval &b){
     return a.start < b.start;
 }
@@ -2259,52 +2251,7 @@ int kthLargestElement(int n, vector<int> &nums) {
     
 }
 
-#pragma mark - 调试函数
 
-void printVectorString(vector<string> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<" "<<endl;
-    }
-}
-
-void printVectorStringOneLine(vector<string> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<" ";
-    }
-    cout<<endl;
-}
-
-void printTwoDVectorString(vector<vector<string>> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        printVectorStringOneLine(vector[i]);
-    }
-}
-
-void printVectorInt(vector<int> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<" "<<endl;
-    }
-}
-
-template<class T>
-void printVectorIntOneLine(vector<T> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<",";
-    }
-    cout<<endl;
-}
-
-void printVectorNodeOneLine(vector<TreeNode *> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]->val<<" ";
-    }
-}
-
-void printTwoDVector(vector<vector<int>> & twoDVector){
-    for (auto iter = twoDVector.begin(); iter != twoDVector.end(); iter++) {
-        printVectorIntOneLine(*iter);
-    }
-}
 
 #pragma mark -
 

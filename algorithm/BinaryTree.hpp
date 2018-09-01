@@ -150,7 +150,7 @@ public:
     }
 };
 
-TreeNode * trimBST(TreeNode * root, int minimum, int maximum) {
+static TreeNode * trimBST(TreeNode * root, int minimum, int maximum) {
     bool left = true;
     TreeNode *cur = root;
     

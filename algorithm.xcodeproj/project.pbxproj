@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		18461CF6209C146C008FF3CE /* TopK.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18461CF4209C146C008FF3CE /* TopK.cpp */; };
 		184F58D81F43E38500ADC12A /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 184F58D71F43E38500ADC12A /* main.cpp */; };
+		18683BDD213A60BA00AE9475 /* CommonStructs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18683BDB213A60BA00AE9475 /* CommonStructs.cpp */; };
 		18715FDB1FCCFF9F008D69BC /* heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18715FD91FCCFF9F008D69BC /* heap.cpp */; };
 		18941B4B1FC8138700E7F3F5 /* TFSort.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18941B4A1FC8138700E7F3F5 /* TFSort.cpp */; };
 /* End PBXBuildFile section */
@@ -32,12 +33,16 @@
 		18461CF5209C146C008FF3CE /* TopK.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TopK.hpp; sourceTree = "<group>"; };
 		184F58D41F43E38500ADC12A /* algorithm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = algorithm; sourceTree = BUILT_PRODUCTS_DIR; };
 		184F58D71F43E38500ADC12A /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		18683BDB213A60BA00AE9475 /* CommonStructs.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CommonStructs.cpp; sourceTree = "<group>"; };
+		18683BDC213A60BA00AE9475 /* CommonStructs.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = CommonStructs.hpp; sourceTree = "<group>"; };
 		186F446B20A13A8F00B4E68F /* Graph.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Graph.hpp; sourceTree = "<group>"; };
 		18715FD91FCCFF9F008D69BC /* heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = heap.cpp; sourceTree = "<group>"; };
 		18715FDA1FCCFF9F008D69BC /* heap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = heap.hpp; sourceTree = "<group>"; };
 		1871A06820ABC25100C2F11C /* BinaryTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BinaryTree.hpp; sourceTree = "<group>"; };
 		1873E1B4211A76B900486DC6 /* LFUCache.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = LFUCache.hpp; sourceTree = "<group>"; };
 		187FDE82202E8AC0001EE759 /* MinStack.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MinStack.hpp; sourceTree = "<group>"; };
+		1882CBB821391E70002C4F1D /* SegmentTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = SegmentTree.hpp; sourceTree = "<group>"; };
+		1882CBBB213925E7002C4F1D /* DoubleLink.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DoubleLink.hpp; sourceTree = "<group>"; };
 		1892CA9820AABB03007D7872 /* MultiwayTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MultiwayTree.hpp; sourceTree = "<group>"; };
 		18941B4A1FC8138700E7F3F5 /* TFSort.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TFSort.cpp; sourceTree = "<group>"; };
 		18941B4C1FC8167900E7F3F5 /* TFSort.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TFSort.h; sourceTree = "<group>"; };
@@ -88,6 +93,10 @@
 				1892CA9820AABB03007D7872 /* MultiwayTree.hpp */,
 				1871A06820ABC25100C2F11C /* BinaryTree.hpp */,
 				1873E1B4211A76B900486DC6 /* LFUCache.hpp */,
+				1882CBB821391E70002C4F1D /* SegmentTree.hpp */,
+				1882CBBB213925E7002C4F1D /* DoubleLink.hpp */,
+				18683BDB213A60BA00AE9475 /* CommonStructs.cpp */,
+				18683BDC213A60BA00AE9475 /* CommonStructs.hpp */,
 			);
 			path = algorithm;
 			sourceTree = "<group>";
@@ -150,6 +159,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				18941B4B1FC8138700E7F3F5 /* TFSort.cpp in Sources */,
+				18683BDD213A60BA00AE9475 /* CommonStructs.cpp in Sources */,
 				184F58D81F43E38500ADC12A /* main.cpp in Sources */,
 				18715FDB1FCCFF9F008D69BC /* heap.cpp in Sources */,
 				18461CF6209C146C008FF3CE /* TopK.cpp in Sources */,

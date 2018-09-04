@@ -11,7 +11,9 @@
 #include <stdio.h>
 #include <vector>
 #include <iostream>
+#include <functional>
 #include "BinaryTree.hpp"
+
 
 using namespace std;
 
@@ -71,5 +73,9 @@ static void printTwoDVector(vector<vector<int>> & twoDVector){
         printVectorIntOneLine(*iter);
     }
 }
+
+#pragma mark - 辅助工具函数
+
+extern void readFile(string &path, const function<void(string &)>& handleLine);
 
 #endif /* CommonStructs_hpp */

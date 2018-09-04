@@ -65,6 +65,11 @@ namespace TFDataStruct {
             delete oldNode;
             return value;
         }
+        
+        T top(){
+            assert(head);
+            return tail->val;
+        }
     };
 }
 

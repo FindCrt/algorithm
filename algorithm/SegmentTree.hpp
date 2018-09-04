@@ -13,6 +13,19 @@
 #include <stdio.h>
 #include "DoubleLink.hpp"
 
+static inline int maxMergeFunc(int &x, int &y){
+    return x>y?x:y;
+}
+
+static inline int minMergeFunc(int &x, int &y){
+    return x<y?x:y;
+}
+
+template<class T>
+static inline T sumMergeFunc(T &x, T &y){
+    return x+y;
+}
+
 namespace TFDataStruct {
     /******* 模板类的线段树 ********/
     
@@ -32,17 +45,16 @@ namespace TFDataStruct {
         }
     };
 
-    template<class ValueType, ValueType(*mergeFunc) (ValueType &node1, ValueType &node2)>
+    template<class ValueType, ValueType(*mergeFunc) (ValueType &node1, ValueType &node2), class InputValueType = ValueType>
     class SegmentTree{
         
         const static short nodeMark_origin = 0;
         const static short nodeMark_traverseLeft = 1;
         const static short nodeMark_traverseRight = 2;
 
-        typedef SegmentTreeNode<ValueType> NodeType;
         SegmentTreeNode<ValueType> *root;
-
     public:
+        typedef SegmentTreeNode<ValueType> NodeType;
 
         static NodeType * build(int start, int end){
             if (start > end) {
@@ -77,14 +89,14 @@ namespace TFDataStruct {
         }
         
         /** 数组里是每个叶节点的统计数据，即数据和区间一起给了 */
-        static NodeType * build(vector<ValueType> &A) {
+        static NodeType * build(vector<InputValueType> &A) {
             if (A.empty()) {
                 return nullptr;
             }
             return build(A, 0, (int)A.size()-1);
         }
         
-        static NodeType * build(vector<ValueType> &A, int start, int end){
+        static NodeType * build(vector<InputValueType> &A, int start, int end){
             if (start > end) {
                 return nullptr;
             }
@@ -134,7 +146,7 @@ namespace TFDataStruct {
         }
 
         /** 给指定区间内的节点都加上给定值 */
-        static void add(SegmentTreeNode<ValueType> *root, int start, int end, ValueType delta){
+        static void add(SegmentTreeNode<ValueType> *root, int start, int end, InputValueType delta){
             if (start > end || start > root->end || end < root->start) {
                 return;
             }
@@ -181,7 +193,7 @@ namespace TFDataStruct {
             } while (1);
         }
 
-        static void modify(SegmentTreeNode<ValueType> *root, int index, ValueType newValue){
+        static void modify(SegmentTreeNode<ValueType> *root, int index, InputValueType newValue){
             if (index<root->start || index > root->end) {
                 return;
             }

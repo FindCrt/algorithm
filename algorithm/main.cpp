@@ -109,15 +109,11 @@ vector<int> numberOfProcesses(vector<Interval> &logs, vector<int> &queries) {
     return res;
 }
 
-static inline int businessMergeFunc(int &x, int &y){
-    return x<y?x:y;
-}
-
 //751. 约翰的生意 这题符合线段树的应用环境
 //借一位刷题朋友的话：线段树的应用环境是构建时使用点粒度，查询时使用区间粒度。
 //这题不仅应用环境很匹配，而且数据量也很大，别说暴力解不行，就是递归实现的线段树都不行
 vector<int> business(vector<int> &A, int k) {
-    typedef SegmentTree<int, businessMergeFunc> MyTree;
+    typedef SegmentTree<int, minMergeFunc> MyTree;
     
     auto root = MyTree::build(A);
     vector<int> result;
@@ -131,7 +127,40 @@ vector<int> business(vector<int> &A, int k) {
     return result;
 }
 
+//205. 区间最小数
+vector<int> intervalMinNumber(vector<int> &A, vector<Interval> &queries) {
+    typedef SegmentTree<int, minMergeFunc> MyTree;
+    
+    auto root = MyTree::build(A);
+    vector<int> result;
+    
+    for (auto &inter : queries) {
+        int minNum = MyTree::query(root, inter.start, inter.end, INT_MIN);
+        result.push_back(minNum);
+    }
+    
+    return result;
+}
+
+//206. 区间求和 I
+vector<long long> intervalSum(vector<int> &A, vector<Interval> &queries) {
+    typedef SegmentTree<long long, sumMergeFunc, int> MyTree;
+    
+    MyTree::NodeType *root = MyTree::build(A);
+    vector<long long> result;
+    
+    for (auto &inter : queries) {
+        long long sum = MyTree::query(root, inter.start, inter.end, 0);
+        result.push_back(sum);
+    }
+    
+    return result;
+}
+
 int main(int argc, const char * argv[]) {
-    
-    
+    vector<int> nums = {1,2,7,8,5};
+    vector<Interval> queries;
+    queries.push_back(Interval(1,2));
+    auto result = intervalSum(nums, queries);
+    printVectorOneLine(result);
 }

@@ -2512,7 +2512,7 @@ vector<vector<int>> subsets(vector<int> &nums, vector<int>::iterator start){
         
         auto oneSet = subSets[i];
         oneSet.insert(oneSet.begin(), *start);
-        printVectorIntOneLine(oneSet);
+        
         subSets.push_back(oneSet);
     }
     
@@ -4472,7 +4472,7 @@ int ladderLength(string &start, string &end, unordered_set<string> &dict) {
                     //                        back = back->shortestPre;
                     //                    }
                     //                    result.insert(result.begin(), start);
-                    //                    printVectorString(result);
+                    
                     
                     return node1->step+1;
                 }
@@ -5158,7 +5158,7 @@ int maxProfit(vector<int> &prices) {
         diff.push_back(prices[i+1]-prices[i]);
     }
     
-    //    printVectorIntOneLine(diff);
+    
     
     int i;
     return max(maxProfit(diff, 0, &i), 0);
@@ -5509,9 +5509,7 @@ string DeleteDigits(string &A, int k) {
         }
         
         solu[0] = A.substr(i,size);
-        
-        //        printVectorString(solu);
-        //        printf("\n----------\n");
+
     }
     
     int zero = 0;

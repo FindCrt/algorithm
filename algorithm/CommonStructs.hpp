@@ -29,48 +29,25 @@ public:
 
 #pragma mark - 调试函数
 
-static void printVectorString(vector<string> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<" "<<endl;
-    }
-}
-
-static void printVectorStringOneLine(vector<string> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<" ";
-    }
-    cout<<endl;
-}
-
-static void printTwoDVectorString(vector<vector<string>> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        printVectorStringOneLine(vector[i]);
-    }
-}
-
-static void printVectorInt(vector<int> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<" "<<endl;
+template<class T>
+static void printVector(vector<T> &vector){
+    for (auto &val : vector){
+        cout<<val<<endl;
     }
 }
 
 template<class T>
-static void printVectorIntOneLine(vector<T> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]<<",";
+static void printVectorOneLine(vector<T> &vector){
+    for (auto &val : vector){
+        cout<<val<<" ";
     }
     cout<<endl;
 }
 
-static void printVectorNodeOneLine(vector<TreeNode *> &vector){
-    for (int i = 0; i<vector.size(); i++) {
-        cout<<vector[i]->val<<" ";
-    }
-}
-
-static void printTwoDVector(vector<vector<int>> & twoDVector){
+template<class T>
+static void printTwoDVector(vector<vector<T>> & twoDVector){
     for (auto iter = twoDVector.begin(); iter != twoDVector.end(); iter++) {
-        printVectorIntOneLine(*iter);
+        printVectorOneLine(*iter);
     }
 }
 

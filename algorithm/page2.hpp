@@ -359,9 +359,6 @@ int nthSuperUglyNumber(int n, vector<int> &primes) {
         uglyNums.push_back(next);
     }
     
-    printf("\n");
-    printVectorIntOneLine(uglyNums);
-    
     return uglyNums[n-1];
 }
 

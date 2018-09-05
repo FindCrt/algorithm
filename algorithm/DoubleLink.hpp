@@ -70,6 +70,8 @@ namespace TFDataStruct {
             assert(head);
             return tail->val;
         }
+        
+        
     };
 }
 

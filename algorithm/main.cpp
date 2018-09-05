@@ -157,10 +157,209 @@ vector<long long> intervalSum(vector<int> &A, vector<Interval> &queries) {
     return result;
 }
 
+class AnimalShelter {
+    const int type_dog = 1;
+    const int type_cat = 0;
+    struct Animal{
+        string name;
+        int type;
+        Animal(){
+            name = "";
+            type = -1;
+        };
+        Animal(string &name, int type):name(name),type(type){};
+        
+        Animal *pre = nullptr;
+        Animal *next = nullptr;
+        Animal *pre_sameType = nullptr;
+        Animal *next_sameType = nullptr;
+    };
+    
+    Animal *anyHead = new Animal();
+    Animal *anyTail = new Animal();
+    Animal *catHead = new Animal();
+    Animal *catTail = new Animal();
+    Animal *dogHead = new Animal();
+    Animal *dogTail = new Animal();
+    
+    //node1->nodex ==> node1->node2->nodex
+    inline void insert(Animal *node1, Animal *node2){
+        node1->next->pre = node2;
+        node2->next = node1->next;
+        
+        node1->next = node2;
+        node2->pre = node1;
+    }
+    inline void insert_sameType(Animal *node1, Animal *node2){
+        node1->next_sameType->pre_sameType = node2;
+        node2->next_sameType = node1->next_sameType;
+        
+        node1->next_sameType = node2;
+        node2->pre_sameType = node1;
+    }
+    
+    //nodex->node1->node2 ==> nodex->node2
+    inline void remove(Animal *node1, Animal *node2){
+        node1->pre->next = node2;
+        node2->pre = node1->pre;
+        
+        node1->pre = nullptr;
+        node1->next = nullptr;
+    }
+    inline void remove_sameType(Animal *node1, Animal *node2){
+        node1->pre_sameType->next_sameType = node2;
+        node2->pre_sameType = node1->pre_sameType;
+        
+        node1->pre_sameType = nullptr;
+        node1->next_sameType = nullptr;
+    }
+ 
+public:
+    
+    AnimalShelter(){
+        anyTail->next = anyHead;
+        anyHead->pre = anyTail;
+        
+        catTail->next_sameType = catHead;
+        catHead->pre_sameType = catTail;
+        
+        dogTail->next_sameType = dogHead;
+        dogHead->pre_sameType = dogTail;
+    }
+
+    void enqueue(string &name, int type) {
+        auto newAni = new Animal(name, type);
+        
+        insert(anyTail, newAni);
+        
+        if (type == type_cat) {
+            insert_sameType(catTail, newAni);
+        }else{
+            insert_sameType(dogTail, newAni);
+        }
+    }
+    
+    string dequeueAny() {
+        if (anyHead==anyTail->next) {
+            return "";
+        }
+        
+        auto node = anyHead->pre;
+        remove(anyHead->pre, anyHead);
+        
+        if (node->type == type_cat) {
+            remove_sameType(catHead->pre_sameType, catHead);
+        }else{
+            remove_sameType(dogHead->pre_sameType, dogHead);
+        }
+        
+        auto result = node->name;
+        delete node;
+        return result;
+    }
+
+    string dequeueDog() {
+        if (dogHead==dogTail->next) {
+            return "";
+        }
+        
+        auto node = dogHead->pre_sameType;
+        remove_sameType(dogHead->pre_sameType, dogHead);
+        
+        remove(node, node->next);
+        
+        auto result = node->name;
+        delete node;
+        return result;
+    }
+
+    string dequeueCat() {
+        if (catHead==catTail->next) {
+            return "";
+        }
+        
+        auto node = catHead->pre_sameType;
+        remove_sameType(catHead->pre_sameType, catHead);
+        
+        remove(node, node->next);
+        
+        auto result = node->name;
+        delete node;
+        return result;
+    }
+    
+    void showAnimals(){
+        printf("\n*******************\nany: ");
+        auto cur = anyTail->next;
+        while (cur != anyHead) {
+            cout<<cur->name<<" ";
+            cur = cur->next;
+        }
+        printf("\n");
+        
+        printf("cat: ");
+        cur = catTail->next_sameType;
+        while (cur != catHead) {
+            cout<<cur->name<<" ";
+            cur = cur->next_sameType;
+        }
+        printf("\n");
+        
+        printf("dog: ");
+        cur = dogTail->next_sameType;
+        while (cur != dogHead) {
+            cout<<cur->name<<" ";
+            cur = cur->next_sameType;
+        }
+        printf("\n");
+    }
+};
+
+#define enqueue(a,b) {string name = a;shelter.enqueue(name, b);}shelter.showAnimals();
+#define dequeueAny() cout<<shelter.dequeueAny()<<endl;shelter.showAnimals();
+#define dequeueDog() cout<<shelter.dequeueDog()<<endl;shelter.showAnimals();
+#define dequeueCat() cout<<shelter.dequeueCat()<<endl;shelter.showAnimals();
+
 int main(int argc, const char * argv[]) {
-    vector<int> nums = {1,2,7,8,5};
-    vector<Interval> queries;
-    queries.push_back(Interval(1,2));
-    auto result = intervalSum(nums, queries);
-    printVectorOneLine(result);
+    AnimalShelter shelter;
+    enqueue("ajpy", 1)
+    enqueue("wajb", 0)
+    dequeueAny()
+    enqueue("hjyw", 1)
+    dequeueAny()
+    enqueue("wtyw", 1)
+    enqueue("jght", 1)
+    enqueue("apwy", 0)
+    dequeueCat()
+    dequeueDog()
+    enqueue("ybwg", 0)
+    enqueue("jpwa", 1)
+    dequeueCat()
+    dequeueDog()
+    enqueue("jayh", 1)
+    enqueue("atww", 0)
+    dequeueDog()
+    enqueue("wjpt", 0)
+    dequeueCat()
+    dequeueDog()
+    enqueue("yhwp", 0)
+    enqueue("gwya", 1)
+    dequeueCat()
+    dequeueCat()
+    enqueue("jgwb", 0)
+    enqueue("agyp", 1)
+    dequeueDog()
+    dequeueCat()
+    enqueue("pbtw", 1)
+    dequeueDog()
+    enqueue("wgjy", 0)
+    enqueue("gbat", 0)
+    dequeueAny()
+    enqueue("ahbw", 0)
+    dequeueDog()
+    dequeueCat()
+    dequeueCat()
+    enqueue("wbya", 0)
+    dequeueCat()
+    enqueue("pgty", 0)
 }

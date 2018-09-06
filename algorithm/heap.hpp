@@ -172,6 +172,12 @@ namespace TFDataStruct {
             }
         };
         
+        void remove(size_t index){
+            _datas[index] = _datas[_validSize-1];
+            _validSize--;
+            update(_datas[index], index);
+        }
+        
         //size不变，一个新的进来，挤掉一个旧的
         void replace(T node, size_t index){
             //TODO: index可能越界

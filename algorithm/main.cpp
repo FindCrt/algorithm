@@ -215,12 +215,317 @@ vector<int> maxSlidingWindow(vector<int> nums, int k) {
 }
 
 int maxSlidingMatrix(vector<vector<int>> &matrix, int k) {
-    if (k>matrix.size()) {
+    int height = (int)matrix.size(), width = (int)matrix.front().size();
+    if (k>height || k>width || k == 0) {
         return 0;
     }
+    
+    if (k==1) {
+        int maxNum = INT_MIN;
+        for (auto &row : matrix){
+            for (auto &num : row){
+                maxNum = max(maxNum, num);
+            }
+        }
+        return maxNum;
+    }
+    
+    int firstRow[width];
+    memset(firstRow, 0, sizeof(firstRow));
+    for (int i = 0; i<width; i++) {
+        for (int j = 0; j<k; j++) {
+            firstRow[i] += matrix[j][i];
+        }
+    }
+    
+    int firstColumn[height];
+    memset(firstColumn, 0, sizeof(firstColumn));
+    for (int i = 0; i<height; i++) {
+        for (int j = 0; j<k; j++) {
+            firstColumn[i] += matrix[i][j];
+        }
+    }
+    
+    int sum[height][width];
+    for (int i = 0; i<height; i++) {
+        memset(sum[i], 0, sizeof(sum[i]));
+    }
+    
+    for (int i = 0; i<k; i++) {
+        sum[k-1][k-1] += firstRow[i];
+    }
+    int maxSum = sum[k-1][k-1];
+    
+    for (int i = k; i<height; i++) {
+        sum[i][k-1] = sum[i-1][k-1]+firstColumn[i]-firstColumn[i-k];
+        maxSum = max(maxSum, sum[i][k-1]);
+    }
+    
+    for (int i = k; i<width; i++) {
+        sum[k-1][i] = sum[k-1][i-1]+firstRow[i]-firstRow[i-k];
+        maxSum = max(maxSum, sum[k-1][i]);
+    }
+    
+    
+    for (int i = k; i<height; i++) {
+        for (int j = k; j<width; j++) {
+            sum[i][j] = sum[i-1][j]+sum[i][j-1]-sum[i-1][j-1]+matrix[i][j]+matrix[i-k][j-k]-matrix[i-k][j]-matrix[i][j-k];
+            maxSum = max(maxSum, sum[i][j]);
+        }
+    }
+    
+    for (int i = k-1; i<height; i++) {
+        for (int j = k-1; j<width; j++) {
+            printf("%d ",sum[i][j]);
+        }
+        printf("\n");
+    }
+    
+    return maxSum;
+}
+
+//363. 接雨水
+//这个是标准解，两指针左右逼近。这题很好的说明了：只有最优解才有意义。最优解包含对问题的优化思路，代表着更深层的理解。
+int trapRainWater(vector<int>& height) {
+    if (height.size() < 2) {
+        return 0;
+    }
+    
+    int result = 0;
+    int level = 0;
+    bool leftSmaller = false;
+    int i = 0, j = (int)height.size()-1;
+    if (height[i] < height[j]) {
+        leftSmaller = true;
+        level = height[i];
+    }else{
+        leftSmaller = false;
+        level = height[j];
+    }
+    
+    while (i<j-1) {
+        if (leftSmaller) {
+            i++;
+            result += max(0, level-height[i]);
+        }else{
+            j--;
+            result += max(0, level-height[j]);
+        }
+        
+        if (height[i] < height[j]) {
+            level = max(height[i], level);
+            leftSmaller = true;
+        }else{
+            level = max(height[j], level);
+            leftSmaller = false;
+        }
+        
+//        printf("[%d, %d](%d,%d) result:%d, level:%d \n",i,j,height[i],height[j],result,level);
+    }
+    
+    return result;
+}
+
+struct RainCell{
+    int x;
+    int y;
+    int height;
+    
+    static inline int RainCellCompareFunc(RainCell &cell1, RainCell &cell2){
+        if (cell1.height < cell2.height){
+            return -1;
+        }else if (cell1.height > cell2.height){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+    
+    friend ostream& operator<<(ostream& os, RainCell &cell){
+        os<<"("<<cell.x<<","<<cell.y<<","<<cell.height<<") ";
+        return os;
+    }
+};
+
+inline int handleRainCell(int x, int y, int level, TFDataStruct::heap<RainCell> &walls, vector<vector<int>> &heights, int &newCount){
+    if (x<0 || y < 0 || x >= heights.size() || y >= heights.front().size()){
+        return 0;
+    }
+    int height = heights[x][y];
+    if (height < 0) {
+        return 0;
+    }
+    heights[x][y] = -1;
+    newCount++;
+    
+    walls.append({x, y, height});
+    return max(level-height, 0);
+}
+
+//364. 接雨水II
+//从第一版得到灵感，维持一个围墙是已经计算过雨水高度的，最矮位置相邻的雨水就可以立马计算出来，就是当前的雨水高度。然后把这个新的cell加入，形成一个新的围墙，而且这个围墙是缩小的。最后可以把所有cell算完。
+
+int trapRainWater(vector<vector<int>> &heights) {
+    int m = (int)heights.size(), n = (int)heights.front().size();
+    if (m < 2 || n < 2){
+        return 0;
+    }
+    TFDataStruct::heap<RainCell> walls(RainCell::RainCellCompareFunc, m*n);
+    
+    for (int i = 0; i<m; i++) {
+        walls.append({i, 0, heights[i][0]});
+        heights[i][0] = -1; //标记为负数，表示已经处理过了
+        
+        walls.append({i, n-1, heights[i][n-1]});
+        heights[i][n-1] = -1;
+    }
+    for (int i = 1; i<n-1; i++) {
+        walls.append({0, i, heights[0][i]});
+        heights[0][i] = -1; //标记为负数，表示已经处理过了
+        
+        walls.append({m-1, i, heights[m-1][i]});
+        heights[m-1][i] = -1;
+    }
+    
+    auto minCell = walls.popTop();
+    int level = minCell.height;
+    int result = 0;
+    int visitedCount = 2*(m+n-2);
+    
+    //1. 如果有一个cell并不是围墙的边缘，即它的四周全是访问过的cell，并不影响计算。
+    //2. 如果围墙分化为多个区域，也不影响计算，因为整体的最矮cell还是它那个区域里的最小cell,而它相邻的cell也会是这个区域里的，那么计算这些相邻的cell就不会有错
+    while (1) {
+        
+        result += handleRainCell(minCell.x-1, minCell.y, level, walls, heights, visitedCount);
+        result += handleRainCell(minCell.x+1, minCell.y, level, walls, heights, visitedCount);
+        result += handleRainCell(minCell.x, minCell.y-1, level, walls, heights, visitedCount);
+        result += handleRainCell(minCell.x, minCell.y+1, level, walls, heights, visitedCount);
+        
+        if (minCell.x == 1 && minCell.y == 2) {
+            cout<<walls<<endl;
+        }
+        printf("[%d,%d] %02d result: %d level: %d\n",minCell.x,minCell.y,minCell.height, result, level);
+        
+        if (visitedCount == m*n) {
+            break;
+        }
+        minCell = walls.popTop();
+        level = max(level, minCell.height);
+    }
+    
+    return result;
+}
+
+class ExpressionTreeNode {
+public:
+    string symbol;
+    ExpressionTreeNode *left, *right;
+    ExpressionTreeNode(string symbol) {
+        this->symbol = symbol;
+        this->left = this->right = NULL;
+    }
+};
+
+//表达式解析的级别，数值和级别高低一致
+enum ExpResolveLevel{
+    ExpResolveLevelAddSubtract, //加减
+    ExpResolveLevelMultiDevide, //乘除
+};
+
+#define ExpressionTreeLinkRight \
+if (right) {    \
+opera->left = left; \
+opera->right = right;   \
+left = opera;   \
+right = nullptr;    \
+}
+
+//TODO: 可以用非递归，即深度搜索的方式实现一遍
+ExpressionTreeNode * build(vector<string> &expression, int start, int &stop, ExpressionTreeNode *startNode = nullptr) {
+    
+    ExpressionTreeNode *left = startNode, *right = nullptr;
+    ExpressionTreeNode *opera = nullptr;
+    ExpResolveLevel expLevel = ExpResolveLevelAddSubtract;
+    bool inBracket = false;
+    if (expression[start].front() == '(') {
+        inBracket = true;
+        start++;
+    }
+    
+    while (start < expression.size()) {
+        string &curStr = expression[start];
+        if (curStr.front()>='0' && curStr.front()<='9') {
+            if (left == nullptr) {
+                left = new ExpressionTreeNode(curStr);
+            }else{
+                right = new ExpressionTreeNode(curStr);
+            }
+        }else if (curStr.front() == '+' || curStr.front() == '-'){
+            if (expLevel == ExpResolveLevelMultiDevide && startNode) {
+                start--;
+                break;
+            }
+            ExpressionTreeLinkRight
+            opera = new ExpressionTreeNode(curStr);
+            expLevel = ExpResolveLevelAddSubtract;
+            
+        }else if (curStr.front() == '*' || curStr.front() == '/'){
+            
+            if (right) {
+                //前面是加法，所以暂时没连接right,保留到现在，现在是乘法，所以这个right并不对，要继续合并后面的
+                int stop = 0;
+                right = build(expression, start, stop, right);
+                start = stop;
+            }else{
+                opera = new ExpressionTreeNode(curStr);
+                expLevel = ExpResolveLevelMultiDevide;
+            }
+            
+        }else if (curStr.front() == ')'){
+            ExpressionTreeLinkRight
+            if (!inBracket) {
+                //当前这组不是括号开始，那么当前结束点是前一个字符，这个结束括号留给上一级
+                start--;
+            }
+            break;
+        }else if (curStr.front() == '('){
+            int stop = 0;
+            auto subNode = build(expression, start, stop, right);
+            if (!left) {
+                left = subNode;
+            }else{
+                right = subNode;
+            }
+            start = stop;
+        }
+        
+        if (expLevel == ExpResolveLevelMultiDevide) {
+            ExpressionTreeLinkRight
+        }
+        
+        start++;
+    }
+    if (start >= expression.size()) {
+        ExpressionTreeLinkRight;
+    }
+    
+    stop = start;
+    
+    return left;
+}
+
+ExpressionTreeNode * build(vector<string> &expression) {
+    expression.insert(expression.begin(), "(");
+    expression.push_back(")");
+    int stop;
+    return build(expression, 0, stop);
 }
 
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
 
+    vector<string> expression = {"2","*","6","-","(","23","+","7",")","/","(","1","+","2",")"};
+//    vector<string> expression = {"(","10","-","7",")","/","3"};
+    auto result = build(expression);
+    
 }

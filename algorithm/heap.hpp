@@ -31,7 +31,7 @@ namespace TFDataStruct {
     
     template<class T>
     class heap {
-        typedef int (*CompareFunc)(T a, T b);
+        typedef int (*CompareFunc)(T &a, T &b);
         size_t _validSize = 0;      //实际有值得节点数
         size_t _limitSize = ULONG_MAX;      //限制节点数，超过这个数量，再添加就需要替换掉一个
         size_t _mallocSize = 8;     //申请的节点数

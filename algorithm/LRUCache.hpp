@@ -23,6 +23,7 @@ class LRUCache {
         CacheNode(int key = 0, int value = 0):key(key),value(value){};
     };
     
+    //头和尾各设了一个哨兵指针，方便处理，不用做头尾的判空
     CacheNode *head = new CacheNode();
     CacheNode *tail = new CacheNode();
     
@@ -31,6 +32,7 @@ class LRUCache {
     
     unordered_map<int,CacheNode *> store;
     
+    /** 在头部插入一个数据 */
     inline void insertHead(CacheNode *node){
         node->next = head;
         node->pre = head->pre;
@@ -87,13 +89,14 @@ public:
             return -1;
         }else{
             auto find = store[key];
-            forword(find);
+            forword(find);  //找到内部存在的数据，提到最前面
             return find->value;
         }
     }
     
     void set(int key, int value) {
         if (store.find(key) == store.end()) {
+            //位置1：内存满了，丢弃一个
             if (size == capacity) {
                 dropTail();
             }
@@ -103,6 +106,7 @@ public:
             insertHead(node);
             size++;
         }else{
+            //内存已有对应的key,更新value,然后提到最前面
             auto find = store[key];
             find->value = value;
             forword(find);

@@ -58,7 +58,7 @@ class LFUCache {
             preRow->next = node->row;
             preRow->pre = node->row->pre;
             
-            if (preRow->next) preRow->next->pre = preRow;
+            preRow->next->pre = preRow;
             if (preRow->pre) preRow->pre->next = preRow;
         }
         
@@ -147,8 +147,6 @@ public:
         
         store[key] = newNode;
         insertNodeToFront(newNode, lastRow);
-        
-        show();
     }
     
     int get(int key) {
@@ -158,25 +156,7 @@ public:
         
         KeyNode *find = store[key];
         bringForward(find);
-        
-        show();
         return find->value;
-    }
-    
-    void show(){
-        RowNode *cur = lastRow;
-        while (cur) {
-            printf("\n###%d\n",cur->time);
-            KeyNode *keyN = cur->keyTail;
-            while (keyN) {
-                printf("[%d : %d] ",keyN->key, keyN->value);
-                keyN = keyN->pre;
-            }
-            
-            cur = cur->pre;
-        }
-        
-        printf("\n***************\n");
     }
 };
 

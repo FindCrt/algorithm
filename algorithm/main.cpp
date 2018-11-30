@@ -521,11 +521,306 @@ ExpressionTreeNode * build(vector<string> &expression) {
     return build(expression, 0, stop);
 }
 
+//递归 1546. 零钱问题
+//非递归的数组形式，数据表太大了
+int coinProblem_re(int target, vector<int>& options, int start){
+    if (start == options.size()-1) {
+        return target;
+    }
+    
+    int first = 0, left = target;
+    int minCount = INT_MAX;
+    while (left > 0) {
+        int count = first+coinProblem_re(left, options, start+1);
+        minCount = min(count, minCount);
+        
+        left -= options[start];
+        first++;
+        
+        if (left == 0) {
+            minCount = min(count, first);
+        }
+    }
+    
+    return minCount;
+}
+
+/**
+ * 1. 整体的动态规划效果都不好，不管递归还是数组存值
+ * 2. 如果解里面有超过2个50，那么就可以把这2个50用一个100代替，所以50的个数最多1个，同理其他数值的最大个数也有限制，那么其他数的总和有个最大值，即50+4*20+9*10+19*5+49*2+99=512。
+   3. 所以除掉512之外的部分一定是由100组成的，除掉后不足100的也要算一个100，因为这剩下的分隔其他值一定会移除。这样就可以先求出512以内的最优解，然后把目标减去100的倍数直到目标落在512以内。
+   4. 最快的解法是100以内的用其他数组成，其他部分都是100组成，但是这个我无法证明。由此引发的一个问题是：什么样的值结构可以保证最大值可以“贪心”?比如值选择有：100,40,1。求总数160的分配，4个40是最快的，如果用了100，就会变成100+40+20*1,总数是22个。
+ */
+int coinProblem(int n, int m) {
+    vector<int> options = {100,50,20,10,5,2,1};
+    
+    //每一个最优解都是从前面一个更小数的最有解加上一个数变过来的
+    //最大数是100，所以我们只需要维持100以内的最优解就可以了
+    int minZone = 512;
+    int zoneResult[minZone+1];
+    zoneResult[0] = 0;
+    zoneResult[1] = 1;
+    zoneResult[2] = 1;
+    
+    for (int i = 3; i<=minZone; i++) {
+        int minCount = INT_MAX;
+        for (int op : options) {
+            if (i>=op) {
+                minCount = min(minCount, zoneResult[i-op]);
+            }
+        }
+        
+        zoneResult[i] = minCount+1;
+    }
+    
+    int target = n-m;
+    if (target <= minZone) {
+        return zoneResult[target];
+    }else{
+        int hundredCount = ceil((target-minZone)/100.0);
+        return hundredCount+zoneResult[target-hundredCount*100];
+    }
+    
+    return 0;
+}
+
+//1478. 最接近target的值
+//双指针，当i-j的和小于target时，把i增加，直到和大于target(等于就直接得结果了，就不必说了)，这时上一次的和就是这个j对应的最优解
+//然后把j减小一个，i也减小一个回到最优解的位置。如果i往更小的移动，那么这时的和对比上一次的最优解：i小了，j也小了，综合就小了，那么它一定比上次的最优解更远离target。所以i不能左移了，从当前开始，不断右移。这时就回到了上一步：和小于target时就i++直到和大于target.
+//整个过程其实是在j固定时所对应的最优解，然后比较这些最优解得到最终解。只是每次j减小后，i不用从0开始算，而是从上一次的解的位置接着往下算。这样i和j都不会走重复的地方，所以复杂度还是O(n)
+int closestTargetValue(int target, vector<int> &array) {
+    sort(array.begin(), array.end());
+    
+    if (array[0]+array[1]>target) {
+        return -1;
+    }
+    
+    int i = 0, j = (int)array.size()-1;
+    int sum;
+    do {
+        sum = array[i]+array[j];
+        j--;
+    } while (sum > target);
+    
+    if (sum == target) {
+        return target;
+    }
+    
+    j++;
+    i++;
+    
+    int result = sum;
+    
+    while (i<j) {
+        sum = array[i]+array[j];
+        if (sum < target) {
+            result = max(result, sum);
+            i++;
+        }else if (sum == target){
+            return target;
+        }else{
+            i--;
+            j--;
+        }
+    }
+    
+    return result;
+}
+
+string isTwin(string &s, string &t) {
+    if (s.size() != t.size()) {
+        return "No";
+    }
+    
+    //奇数的数量统计在后216个槽位里，偶数在前面
+    short size = 216;
+    int count_s[size*2];
+    int count_t[size*2];
+    memset(count_s, 0, size*2*sizeof(int));
+    memset(count_t, 0, size*2*sizeof(int));
+    
+    for (int i = 0; i<s.size(); i++) {
+        //i&1，在奇数时为1，偶数时为0，奇数会偏移216
+        count_s[s[i]+size*(i&1)]++;
+    }
+    for (int i = 0; i<t.size(); i++) {
+        count_t[t[i]+size*(i&1)]++;
+    }
+    
+    for (int i = 0; i<size*2; i++) {
+        if (count_s[i] != count_t[i]) {
+            return "No";
+        }
+    }
+    return "Yes";
+}
+
+vector<string> convertToRPN(vector<string> &expression) {
+    stack<string> op;
+    vector<string> RPN;
+    for (string &str : expression){
+        char &fir = str.front();
+        if (fir >= '0' && fir <= '9') {
+            RPN.push_back(str);
+        }else{
+            if (fir == '(') {
+                op.push(str);
+            }else if (fir == ')'){
+                
+                while (op.top().front() != '(') {
+                    RPN.push_back(op.top());
+                    op.pop();
+                }
+                op.pop();
+            }else if(fir == '+' || fir == '-'){
+                while (!op.empty() && op.top().front() != '(') {
+                    RPN.push_back(op.top());
+                    op.pop();
+                }
+                op.push(str);
+            }else{
+                while (!op.empty() && (op.top().front() == '*' || op.top().front() == '/')) {
+                    RPN.push_back(op.top());
+                    op.pop();
+                }
+                op.push(str);
+            }
+        }
+    }
+    
+    while (!op.empty()) {
+        RPN.push_back(op.top());
+        op.pop();
+    }
+    
+    return RPN;
+}
+
+void convertToRPN(vector<string> &expression, vector<string> &RPN) {
+    stack<string> op;
+    for (string &str : expression){
+        char &fir = str.front();
+        if (fir >= '0' && fir <= '9') {
+            RPN.push_back(str);
+        }else{
+            if (fir == '(') {
+                op.push(str);
+            }else if (fir == ')'){
+                
+                while (op.top().front() != '(') {
+                    RPN.push_back(op.top());
+                    op.pop();
+                }
+                op.pop();
+            }else if(fir == '+' || fir == '-'){
+                while (!op.empty() && op.top().front() != '(') {
+                    RPN.push_back(op.top());
+                    op.pop();
+                }
+                op.push(str);
+            }else{
+                while (!op.empty() && (op.top().front() == '*' || op.top().front() == '/')) {
+                    RPN.push_back(op.top());
+                    op.pop();
+                }
+                op.push(str);
+            }
+        }
+    }
+    
+    while (!op.empty()) {
+        RPN.push_back(op.top());
+        op.pop();
+    }
+}
+
+int evalRPN(vector<string> &tokens) {
+    stack<int> nums;
+    
+    for (int i = 0; i<tokens.size(); i++) {
+        char c = tokens[i].back();
+        if (c >= '0' && c <= '9') {
+            nums.push(stoi(tokens[i]));
+        }else{
+            int num1 = nums.top();
+            nums.pop();
+            int num2 = nums.top();
+            nums.pop();
+            
+            int result = 0;
+            if (c == '+') {
+                result = num1+num2;
+            }else if (c == '-'){
+                result = num2-num1;
+            }else if (c == '*'){
+                result = num1*num2;
+            }else{
+                result = num2/num1;
+            }
+            
+            nums.push(result);
+        }
+    }
+    
+    if (nums.empty()) {
+        return 0;
+    }
+    return nums.top();
+}
+
+int evaluateExpression(vector<string> &expression) {
+    vector<string> RPN;
+    convertToRPN(expression, RPN);
+    return evalRPN(RPN);
+}
+
+//79. 最长公共子串  动态规划
+struct MaxLenNode{
+    int maxLen;
+    int involveHeadLen;
+};
+
+int longestCommonSubstring(string &A, string &B) {
+    if (A.empty() || B.empty()) {
+        return 0;
+    }
+    
+    int w = (int)A.size(), h = (int)B.size();
+    MaxLenNode maxLenMap[w][h];
+    
+    for (int i = 0; i<w; i++) {
+        int count = (A[i]==B.back()?1:0);
+        maxLenMap[i][h-1] = {count, count};
+    }
+    
+    for (int j = 0; j<h-1; j++) {
+        int count = (B[j]==A.back()?1:0);
+        maxLenMap[w-1][j] = {count, count};
+    }
+    
+    for (int i = w-2; i>=0; i--) {
+        for (int j = h-2; j>=0; j--) {
+            int maxLen = 0, maxInvolve = 0;
+            if (A[i] == B[j]) {
+                maxInvolve = maxLen = 1+maxLenMap[i+1][j+1].involveHeadLen;
+            }
+            
+            maxLen = max(maxLen, maxLenMap[i+1][j+1].maxLen);
+            maxLen = max(maxLen, maxLenMap[i+1][j].maxLen);
+            maxLen = max(maxLen, maxLenMap[i][j+1].maxLen);
+            
+            maxLenMap[i][j] = {maxLen, maxInvolve};
+        }
+    }
+    
+    return maxLenMap[0][0].maxLen;
+}
+
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
 
-    vector<string> expression = {"2","*","6","-","(","23","+","7",")","/","(","1","+","2",")"};
-//    vector<string> expression = {"(","10","-","7",")","/","3"};
-    auto result = build(expression);
-    
+    string A = "ABCD";
+    string B = "CBCE";
+    auto result = longestCommonSubstring(A, B);
+    printf("%d\n",result);
 }

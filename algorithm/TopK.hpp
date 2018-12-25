@@ -18,7 +18,7 @@ public:
     int size = 0;
     TopK(int k) {
         size = k;
-        maxHeap = new TFDataStruct::heap<int>(false);
+//        maxHeap = new TFDataStruct::heap<int>(false);
     }
     
     void add(int num) {

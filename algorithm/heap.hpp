@@ -47,7 +47,7 @@ namespace TFDataStruct {
             _datas[j] = temp;
         }
         
-        static inline int defaultMaxHeapCompare(T a, T b){
+        static inline int defaultMaxHeapCompare(T &a, T &b){
             if (a < b) {
                 return 1;
             }else if (a > b){
@@ -57,7 +57,7 @@ namespace TFDataStruct {
             }
         }
         
-        static inline int defaultMinHeapCompare(T a, T b){
+        static inline int defaultMinHeapCompare(T &a, T &b){
             if (a < b) {
                 return -1;
             }else if (a > b){
@@ -97,6 +97,7 @@ namespace TFDataStruct {
             
             while (cur > 0) {
                 auto parent = parentIndex(cur);
+                //按照最小堆逻辑，那么这里就是cur>parent,因为这时就满足父节点小于子节点，不用再处理了
                 if (_compare(_datas[parent], _datas[cur]) < 0) {
                     break;
                 }else{
@@ -135,7 +136,7 @@ namespace TFDataStruct {
         };
         
         heap(bool isMinHeap, size_t limitSize = ULONG_MAX, vector<T> *vec = nullptr){
-            new (this) heap(isMinHeap ? defaultMinHeapCompare : defaultMaxHeapCompare, limitSize, vec);
+            new (this) heap(isMinHeap ? (CompareFunc)defaultMinHeapCompare : (CompareFunc)defaultMaxHeapCompare, limitSize, vec);
         }
         
         size_t getValidSize(){
@@ -148,6 +149,10 @@ namespace TFDataStruct {
         
         bool isEmpty(){
             return _validSize == 0;
+        }
+        
+        bool isFull(){
+            return _validSize == _limitSize;
         }
         
         T getTop(){
@@ -183,6 +188,12 @@ namespace TFDataStruct {
             //TODO: index可能越界
             _datas[index] = node;
             update(node, index);
+        }
+        
+        //更新堆顶的数值
+        void replaceTop(T node){
+            _datas[0] = node;
+            update(node, 0);
         }
         
         //某个节点的数据改变，更新它的位置

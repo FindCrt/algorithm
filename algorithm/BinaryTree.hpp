@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <vector>
 #include <stdlib.h>
+#include <stack>
 
 using namespace std;
 
@@ -69,6 +70,89 @@ public:
         
         free(plane);
         return root;
+    }
+    
+    static TreeNode *createFromBracketString(string str){
+        stack<TreeNode *> parents;
+        TreeNode *root = nullptr;
+        
+        TreeNode *last = nullptr;
+        bool left = false;
+        for (char &c : str){
+            if (c == ' ') {
+                continue;
+            }
+            if (c == '(') {
+                parents.push(last);
+                left = true;
+            }else if (c == ')'){
+                parents.pop();
+            }else if (c == ','){
+                left = false;
+            }else{
+                TreeNode *node = new TreeNode(c-'0');
+                if (parents.empty()) {
+                    root = node;
+                }else{
+                    if (left){
+                        parents.top()->left = node;
+                    }else{
+                        parents.top()->right = node;
+                    }
+                }
+                last = node;
+            }
+        }
+        
+        return root;
+    }
+    
+    //左节点时，输出"(",切换到右子树时，输出“,”,结束返回时输出“)”.所以3个状态都需要，只能是后续遍历了。
+    //或者直接在栈里存储节点的状态
+    static string showTreeWithBlacketString(TreeNode *root){
+        if (root == nullptr) {
+            return "";
+        }
+        
+        string result = "";
+        stack<pair<TreeNode *, short>> path;
+        path.push({root, 1});
+        
+        while (!path.empty()) {
+            auto &cur = path.top();
+            
+            if (cur.second == 1) { //is left node
+                result += to_string(cur.first->val);
+                
+                cur.second++;
+                if (cur.first->left) {
+                    path.push({cur.first->left, 1});
+                    result += "(";
+                    continue;
+                }
+            }
+            
+            if (cur.second == 2){
+                cur.second++;
+                
+                if (cur.first->right) {
+                    path.push({cur.first->right, 1});
+                    if (cur.first->left) {
+                        result += ",";
+                    }else{
+                        result += "(,";
+                    }
+                    continue;
+                }
+            }
+            
+            if (cur.first->left || cur.first->right) {
+                result += ")";
+            }
+            path.pop();
+        }
+        
+        return result;
     }
     
     static vector<string> showTree(TreeNode *root){
@@ -146,6 +230,60 @@ public:
         list.push_back(node);
         if (node->right) {
             inorderList(list, node->right);
+        }
+    }
+    
+    /** 先序遍历是最方便的 */
+    static TreeNode *findNode(TreeNode *root, int val){
+        if (root == nullptr) {
+            return nullptr;
+        }
+        
+        stack<TreeNode *> path;
+        path.push(root);
+        
+        while (!path.empty()) {
+            
+            auto cur = path.top();
+            if (cur->val == val) {
+                return cur;
+            }
+            path.pop();
+            
+            if (cur->right) {
+                path.push(cur->right);
+            }
+            if (cur->left) {
+                path.push(cur->left);
+            }
+        }
+        
+        return nullptr;
+    }
+    
+    //先序遍历
+    static void release(TreeNode *root){
+        if (root == nullptr) {
+            return;
+        }
+        
+        stack<TreeNode *> path;
+        path.push(root);
+        
+        while (!path.empty()) {
+            
+            auto cur = path.top();
+            path.pop();
+            
+            if (cur->right) {
+                path.push(cur->right);
+            }
+            if (cur->left) {
+                path.push(cur->left);
+            }
+            
+            printf("delete %d\n",cur->val);
+            delete cur;
         }
     }
 };

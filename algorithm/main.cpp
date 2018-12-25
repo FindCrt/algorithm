@@ -398,16 +398,56 @@ int getAns(vector<int> &a) {
     return -1;
 }
 
+int maximumSwap(int num) {
+    if (num < 10) {
+        return num;
+    }
+    vector<int> digits;
+    int num2 = num;
+    while (num2 > 0) {
+        digits.push_back(num2%10);
+        num2 /= 10;
+    }
+    
+    printVectorOneLine(digits);
+    
+    int maxIdx = 0, maxNum = digits.front();
+    int change1 = -1, change2 = -1;
+    for (int i = 1; i<digits.size(); i++) {
+        if (digits[i]>maxNum) {
+            maxNum = digits[i];
+            maxIdx = i;
+        }else if (digits[i] < maxNum){
+            change1 = maxIdx;
+            change2 = i;
+        }
+    }
+    
+    if (change1 >= 0) {
+        int temp = digits[change1];
+        digits[change1] = digits[change2];
+        digits[change2] = temp;
+    }
+    
+    int result = 0, weight = 1;
+    for (auto &d : digits){
+        result += d*weight;
+        weight *= 10;
+    }
+    
+    return result;
+}
+
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
 
-    vector<int> nums = {101,527,373,526,199,938,915,766,429,951};
+//    vector<int> nums = {101,527,373,526,199,938,915,766,429,951};
     
-    auto result = getAns(nums);
+    auto result = maximumSwap(0);
 //    printVectorOneLine(nums);
 //    printf("%d \n",result);
     cout<<result<<endl;
     
-    sort(nums.begin(), nums.end());
-    printVectorOneLine(nums);
+//    sort(nums.begin(), nums.end());
+//    printVectorOneLine(nums);
 }

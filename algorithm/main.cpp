@@ -19,6 +19,8 @@
 #include <mach/mach_time.h>
 #include <unordered_set>
 #include <fstream>
+#include<stdlib.h>
+//#include "page1.hpp"
 
 #include "TFSort.h"
 #include "MinStack.hpp"
@@ -88,7 +90,7 @@ vector<int> getNarcissisticNumbers(int n) {
 }
 
 ///1与，对方；1或，都是1；0与，都是0；0或，对方
-int aplusb(int a, int b) {
+int aplusbx(int a, int b) {
     int result = 0;
     bool carry = 0;
     for (int i = 0; i<sizeof(int)*8; i++) {
@@ -96,11 +98,11 @@ int aplusb(int a, int b) {
         int digitB = b &1;
         
         bool one = false;
-        if (digitA ^ digitB) {
+        if (digitA ^ digitB) {  //和为1
             if (!carry) {
                 one = true;
             }
-        }else{
+        }else{  //和为0
             if (digitA) {
                 if (carry) {
                     one = true;
@@ -336,34 +338,7 @@ string depress(int m, int k, vector<int> &arr) {
     return sum<m?"yes":"no";
 }
 
-int partion(vector<int> &a, int start, int end){
-    int i = start, j = end;
-    
-    int st = a[start];
-    bool left = false;
-    while (i < j) {
-        if (left) {
-            if (a[i] > st) {
-                a[j] = a[i];
-                j--;
-                left = !left;
-            }else{
-                i++;
-            }
-        }else{
-            if (a[j] <= st) {
-                a[i] = a[j];
-                i++;
-                left = !left;
-            }else{
-                j--;
-            }
-        }
-    }
-    
-    a[i] = st;
-    return i;
-}
+
 
 //思路归纳： 一个查找区间，目标确定在这个区间内，将区间划分成两部分，判定区间在左边还是在右边，然后就可以缩小查找区间。循环不变体是：目标在查找区间内；变化过程是：区间的二分切割；退出条件时：区间缩小到长度为1.
 //再高一层的抽象为：大问题化小，小到一定程度，问题便非常简单可解了。
@@ -371,9 +346,9 @@ int getAns(vector<int> &a) {
     if (a.empty()) {
         return -1;
     }
-    int mid = (a.size()-1)/2;
+    int mid = (int)(a.size()-1)/2;
     vector<int> copy = a;
-    int left = 0, right = a.size()-1;
+    int left = 0, right = (int)a.size()-1;
     while (left < right) {
         int k = partion(copy, left, right);
         printVectorOneLine(copy);
@@ -409,8 +384,6 @@ int maximumSwap(int num) {
         num2 /= 10;
     }
     
-    printVectorOneLine(digits);
-    
     int maxIdx = 0, maxNum = digits.front();
     int change1 = -1, change2 = -1;
     for (int i = 1; i<digits.size(); i++) {
@@ -438,16 +411,186 @@ int maximumSwap(int num) {
     return result;
 }
 
+int countNodes(ListNode * head) {
+    int count = 0;
+    ListNode *cur = head;
+    while (cur) {
+        count++;
+        cur = cur->next;
+    }
+    
+    return count;
+}
+
+ListNode * middleNode(ListNode * head) {
+    if (head == nullptr) {
+        return nullptr;
+    }
+    
+    ListNode *slow = head, *fast = head;
+    bool go = true;
+    while (1) {
+        fast = fast->next;
+        if (!fast) {
+            break;
+        }
+        go = !go;
+        if (go) {
+            slow = slow->next;
+        }
+    }
+    
+    return slow;
+}
+
+ListNode * insertNode(ListNode * head, int val) {
+    
+    ListNode *newNode = new ListNode(val);
+    if (head == nullptr) {
+        return newNode;
+    }
+    
+    ListNode *cur = head, *last = nullptr;
+    while (cur && cur->val < val) {
+        last = cur;
+        cur = cur->next;
+    }
+    
+    if (last) {
+        last->next = newNode;
+    }else{
+        head = newNode;
+    }
+    newNode->next = cur;
+    
+    return head;
+}
+
+vector<int> reverseStore(ListNode * head) {
+    vector<int> result;
+    ListNode *cur = head;
+    while (cur) {
+        result.insert(result.begin(), cur->val);
+        cur = cur->next;
+    }
+    
+    return result;
+}
+
+ListNode * deleteNode(ListNode * head, int n, int m) {
+    ListNode *pre = nullptr, *after = nullptr, *cur = head;
+    int index = 0;
+    while (cur) {
+        
+        if (index == n-1) {
+            pre = cur;
+        }else if (index == m){
+            after = cur->next;
+            break;
+        }
+        
+        index++;
+        cur = cur->next;
+    }
+    
+    if (pre == nullptr) {
+        return after;
+    }
+    pre->next = after;
+    return pre;
+}
+
+bool findHer(vector<string> &maze, Point start, Point end){
+    if (maze[start.x][start.y] == '*' ||
+        start.x<0||
+        start.x >= maze.size() ||
+        start.y <0||
+        start.y >= maze.front().size()) {
+        return false;
+    }
+    
+    if (start.x == end.x && start.y == end.y) {
+        return true;
+    }
+    
+    maze[start.x][start.y] = '*';
+    if (findHer(maze, {start.x+1, start.y}, end)) {
+        return true;
+    }
+    if (findHer(maze, {start.x-1, start.y}, end)) {
+        return true;
+    }
+    if (findHer(maze, {start.x, start.y+1}, end)) {
+        return true;
+    }
+    if (findHer(maze, {start.x, start.y-1}, end)) {
+        return true;
+    }
+//    maze[start.x][start.y] = '.';
+    
+    return false;
+}
+
+bool findHer(vector<string> &maze) {
+    
+    Point start, end;
+    
+    int x = 0, y = 0;
+    for (auto & str : maze){
+        y = 0;
+        for (auto &c : str){
+            if (c == 'S') {
+                start = {x, y};
+            }else if (c == 'T'){
+                end = {x,y};
+            }
+            y++;
+        }
+        x++;
+    }
+    
+    return findHer(maze, start, end);
+}
+
+
+///1. 通过范围来避免重复  2. 检查每个参数的定义和它们的传值是否正确 3. 审题，输出结果是否是题目需求
+void getWays(vector<int> &a, int start, int k, int sum, int &count) {
+    
+    if (k == 0) {
+        if (isPrimeNum(sum)) {
+            count++;
+        }
+        return;
+    }
+    
+    for (int i = start; i<a.size(); i++) {
+        getWays(a, i+1, k-1, sum+a[i], count);
+    }
+}
+
+int getWays(vector<int> &a, int k) {
+    int count = 0;
+    getWays(a, 0, k, 0, count);
+    
+    return count;
+}
+
+long long getAnsxx(vector<int> &atk) {
+    sort(atk.begin(), atk.end());
+    
+    int sum = 0;
+    int idx = 0;
+    for (int k = atk.size()-1; k>0; k--) {
+        sum += k*atk[idx];
+    }
+    
+    return sum;
+}
+
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
 
-//    vector<int> nums = {101,527,373,526,199,938,915,766,429,951};
-    
-    auto result = maximumSwap(0);
-//    printVectorOneLine(nums);
-//    printf("%d \n",result);
-    cout<<result<<endl;
-    
-//    sort(nums.begin(), nums.end());
-//    printVectorOneLine(nums);
+    vector<int> nums = {};
+    auto resut = searchRange(nums, 9);
+    printVectorOneLine(resut);
 }

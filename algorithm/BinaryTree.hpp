@@ -12,6 +12,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <stack>
+#include "CommonStructs.hpp"
 
 using namespace std;
 
@@ -282,9 +283,160 @@ public:
                 path.push(cur->left);
             }
             
-            printf("delete %d\n",cur->val);
             delete cur;
         }
+    }
+    
+    static int maxDepth(TreeNode *root) {
+        if (root == nullptr) {
+            return 0;
+        }
+        
+        stack<pair<TreeNode *, int>> path;
+        path.push({root, 1});
+        
+        int maxDeap = 0;
+        
+        while (!path.empty()) {
+            
+            auto cur = path.top();
+            auto parent = cur.first;
+            path.pop();
+            
+            int count = 0;
+            if (parent->right) {
+                path.push({parent->right, cur.second+1});
+                count++;
+            }
+            if (parent->left) {
+                path.push({parent->left, cur.second+1});
+                count++;
+            }
+            
+            if (count == 0 && cur.second > maxDeap) {
+                maxDeap = cur.second;
+            }
+        }
+        
+        return maxDeap;
+    }
+    
+    struct PathSum{
+        TreeNode *node = nullptr;
+        int sum = 0;
+        int state = 0;
+        
+        PathSum(TreeNode *node, int sum, int state):node(node),sum(sum),state(state){};
+    };
+    
+    //路径值的和为目标值
+    static vector<vector<int>> binaryTreePathSum(TreeNode *root, int target) {
+        
+        vector<vector<int>> result;
+        if (root == nullptr) {
+            return result;
+        }
+        
+        vector<int> valPath;
+        
+        stack<PathSum> path;
+        path.push({root, 0, 0});
+        
+        while (!path.empty()) {
+            
+            auto &cur = path.top();
+            auto &node = cur.node;
+            
+            //遍历左边
+            if (cur.state == 0) {
+                cur.sum += node->val;
+                valPath.push_back(node->val);
+                
+                cur.state++;
+                if (node->left) {
+                    path.push({node->left, cur.sum, 0});
+                    continue;
+                }
+                
+            }
+            
+            //遍历右边
+            if (cur.state == 1) {
+                cur.state++;
+                if (node->right) {
+                    path.push({node->right, cur.sum, 0});
+                    continue;
+                }
+            }
+            
+            //回溯
+            if (cur.state == 2) {
+                if (cur.sum == target &&
+                    node->left == nullptr &&
+                    node->right == nullptr) {
+                    
+                    result.push_back(valPath);
+                }
+                
+                path.pop();
+                valPath.pop_back();
+            }
+        }
+        
+        return result;
+    }
+    
+    //翻转二叉树，前序遍历就可以完成
+    static void invertBinaryTree(TreeNode *root) {
+        if (root == nullptr) {
+            return;
+        }
+        
+        stack<TreeNode *>path;
+        path.push(root);
+        
+        while (!path.empty()) {
+            
+            auto cur = path.top();
+            
+            TreeNode *left = cur->left;
+            cur->left = cur->right;
+            cur->right = left;
+            
+            path.pop();
+            if (cur->left) {
+                path.push(cur->left);
+            }
+            if (cur->right) {
+                path.push(cur->right);
+            }
+        }
+    }
+    
+    static int getNodeCount(TreeNode * root) {
+        if (root == nullptr) {
+            return 0;
+        }
+        
+        stack<TreeNode *>path;
+        path.push(root);
+        
+        int count = 0;
+        
+        while (!path.empty()) {
+            
+            count++;
+            auto cur = path.top();
+            path.pop();
+            if (cur->left) {
+                path.push(cur->left);
+            }
+            if (cur->right) {
+                path.push(cur->right);
+            }
+        }
+        
+        return count;
     }
 };
 

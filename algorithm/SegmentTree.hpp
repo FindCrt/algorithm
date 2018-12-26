@@ -243,7 +243,7 @@ namespace TFDataStruct {
                 return defaultValue;
             }
             
-            ValueType result;
+            ValueType result = 0;
             bool unassigned = true; //result是否被赋值过，因为数据类型是不确定，无法赋初始值
             auto cur = root;
             TFDataStruct::Stack<NodeType *> path;

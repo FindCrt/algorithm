@@ -25,51 +25,6 @@
 #include "BinaryTree.hpp"
 #include "CommonStructs.hpp"
 
-class ListNode {
-public:
-    int val;
-    ListNode *next;
-    ListNode(int val) {
-        this->val = val;
-        this->next = NULL;
-    }
-    
-    static ListNode *createList(vector<int> vals){
-        ListNode *head = nullptr;
-        ListNode *last = nullptr;
-        for (auto iter = vals.begin(); iter != vals.end(); iter ++) {
-            ListNode *node = new ListNode(*iter);
-            
-            if (head == nullptr) {
-                head = node;
-            }else{
-                last->next = node;
-            }
-            last = node;
-        }
-        
-        return head;
-    }
-    
-    static void printList(ListNode *list){
-        if (list == nullptr) {
-            printf("list is empty!\n");
-            return;
-        }
-        
-        printf("%d",list->val);
-        list = list->next;
-        
-        while (list) {
-            printf("->%d",list->val);
-            list = list->next;
-        }
-        
-        printf("\n");
-    }
-};
-
-
 
 int addDigits(int num) {
     
@@ -343,32 +298,6 @@ bool isPalindrome(string s) {
     }
     
     return true;
-}
-
-inline void rotateStringRange(string &str, string::iterator first, string::iterator last){
-    auto left = first;
-    auto right = last-1;
-    while (left < right) {
-        char temp = *left;
-        *left = *right;
-        *right = temp;
-        
-        left ++;
-        right --;
-    }
-}
-
-void rotateString(string &str,int offset){
-    if (str.empty()) {
-        return;
-    }
-    
-    offset %= str.length();
-    
-    auto border = str.begin()+ (str.length() - offset);
-    rotateStringRange(str, str.begin(), border);
-    rotateStringRange(str, border, str.end());
-    rotateStringRange(str, str.begin(), str.end());
 }
 
 int aplusb(int a, int b) {
@@ -969,35 +898,6 @@ bool isIsomorphic(string s, string t) {
     
     return true;
 }
-
-//在整个字符串里唯一的字符，找到符合这个条件的第一个
-int firstUniqChar(string &s) {
-    
-    int charCount = 256;
-    int exist[charCount];
-    memset(exist, 0, sizeof(exist));
-    
-    for (auto iter = s.begin(); iter != s.end(); iter++) {
-        int index = *iter;
-        
-        if (exist[index] == 0) {
-            exist[index] = 1;
-        }else if (exist[index] == 1){
-            exist[index] = 2;
-        }
-    }
-    
-    for (int i = 0; i<s.length();i++) {
-        
-        int index = s[i];
-        if (exist[index] == 1) {
-            return i;
-        }
-    }
-    
-    return -1;
-}
-
 
 int guess(int num){
     int right = 2147483647;
@@ -1924,55 +1824,6 @@ bool anagram(string s, string t) {
     return true;
 }
 
-bool isUnique(string &str) {
-    bool charTime[256];
-    memset(charTime, 0, sizeof(charTime));
-    
-    for (auto iter = str.begin(); iter != str.end(); iter++) {
-        if (charTime[*iter]) {
-            return false;
-        }else{
-            charTime[*iter] = true;
-        }
-    }
-    
-    return true;
-}
-
-//要返回索引，而且一大一小，这个不简单。1.不能直接重拍原数据 2.两个数相同的情况，索引会取错。
-vector<int> twoSum(vector<int> &numbers, int target) {
-    //    quickSort(numbers);
-    vector<int> sorted = numbers;
-    sort(sorted.begin(), sorted.end());
-    int left = 0, right = (int)sorted.size()-1;
-    while (left < right) {
-        int sum = sorted[left] +sorted[right];
-        if (sum < target) {
-            left++;
-        }else if (sum > target){
-            right--;
-        }else{
-            break;
-        }
-    }
-    
-    int index1 = 0,index2 = 0;
-    for (int i = 0; i<numbers.size(); i++) {
-        if (numbers[i] == sorted[left]) {
-            index1 = i+1;
-            break;
-        }
-    }
-    for (int i = 0; i<numbers.size(); i++) {
-        if (numbers[i] == sorted[right] && i != index1-1) {
-            index2 = i+1;
-            break;
-        }
-    }
-    
-    return {min(index1, index2), max(index1, index2)};
-}
-
 bool compareStrings(string &A, string &B) {
     int charTime[26];
     memset(charTime, 0, sizeof(charTime));
@@ -2025,7 +1876,7 @@ struct DisPoint{
     }
 };
 
-int disPointCompare(DisPoint a, DisPoint b){
+int disPointCompare(DisPoint &a, DisPoint &b){
     if(a.dis != b.dis){
         return a.dis < b.dis ? -1:1;
     }

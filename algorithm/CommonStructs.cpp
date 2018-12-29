@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <math.h>
 
-void readFile(string &path, const function<void(string &)>& handleLine){
+void readFile(string &path, const function<void(string &)> handleLine){
     assert(handleLine);
     
     ifstream infile(path.c_str());

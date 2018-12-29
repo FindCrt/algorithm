@@ -102,7 +102,7 @@ static void printTwoDVector(vector<vector<T>> & twoDVector){
 
 #pragma mark - 辅助工具函数
 
-extern void readFile(string &path, const function<void(string &)>& handleLine);
+extern void readFile(string &path, const function<void(string &)> handleLine);
 
 
 #pragma mark - 经典常用函数
@@ -126,5 +126,76 @@ extern int kthLargestElement(int n, vector<int> &nums);
 
 /** 查找一个数在有序数组中的范围，考虑到不存在和重复的问题；进化版的二分法 */
 extern vector<int> searchRange(vector<int> &A, int target);
+
+template<class T>
+bool canReachPoint(vector<vector<T>> &map, Point start, T wall, T road, T target, vector<Point> *path = nullptr){
+    if (
+        start.x<0||
+        start.x >= map.size() ||
+        start.y <0||
+        start.y >= map.front().size() ||
+        map[start.x][start.y] == wall) {
+        return false;
+    }
+    
+    if (map[start.x][start.y] == target) {
+        return true;
+    }
+    
+    map[start.x][start.y] = wall;
+    if (path) {
+        path->push_back(start);
+    }
+    if (canReachPoint(map, {start.x+1, start.y}, wall, road, target, path)) {
+        return true;
+    }
+    if (canReachPoint(map, {start.x-1, start.y}, wall, road, target, path)) {
+        return true;
+    }
+    if (canReachPoint(map, {start.x, start.y+1}, wall, road, target, path)) {
+        return true;
+    }
+    if (canReachPoint(map, {start.x, start.y-1}, wall, road, target, path)) {
+        return true;
+    }
+    
+    if (path) {
+        path->pop_back();
+    }
+    
+    return false;
+}
+
+template<class T>
+bool canReachPoint(vector<vector<T>> &map, Point start, T wall, T road, Point target){
+    if (
+        start.x<0||
+        start.x >= map.size() ||
+        start.y <0||
+        start.y >= map.front().size() ||
+        map[start.x][start.y] == wall) {
+        return false;
+    }
+    
+    if (start.x == target.x && start.y == target.y) {
+        return true;
+    }
+    
+    map[start.x][start.y] = wall;
+    if (canReachPoint(map, {start.x+1, start.y}, wall, road, target)) {
+        return true;
+    }
+    if (canReachPoint(map, {start.x-1, start.y}, wall, road, target)) {
+        return true;
+    }
+    if (canReachPoint(map, {start.x, start.y+1}, wall, road, target)) {
+        return true;
+    }
+    if (canReachPoint(map, {start.x, start.y-1}, wall, road, target)) {
+        return true;
+    }
+    
+    return false;
+}
 
 #endif /* CommonStructs_hpp */

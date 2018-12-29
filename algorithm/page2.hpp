@@ -4512,4 +4512,1096 @@ int longestCommonSubstring(string &A, string &B) {
     return maxLenMap[0][0].maxLen;
 }
 
+int singleNumber(vector<int> &A) {
+    int num = 0;
+    for (auto &n : A){
+        num ^= n;
+    }
+    
+    return num;
+}
+
+vector<int> getNarcissisticNumbers(int n) {
+    if (n == 1) {
+        return {1,2,3,4,5,6,7,8,9};
+    }
+    
+    vector<int> result;
+    int pows[10];
+    for (int i = 0; i<10; i++) {
+        pows[i] = pow(i, n);
+    }
+    
+    int min = pow(10, n-1);
+    int max = pow(10, n);
+    int digits[n];
+    memset(digits, 0, sizeof(digits));
+    digits[0] = 1;
+    
+    //除法特别慢，计算机没法优化，用加法
+    for (int k = min+1; k<max; k++) {
+        bool carry = 1;
+        for (int i = n-1; i>=0 && carry; i--) {
+            if (digits[i] == 9) {
+                digits[i] = 0;
+            }else{
+                digits[i]++;
+                carry = 0;
+            }
+        }
+        
+        int powSum = 0;
+        for (int i = 0; i<n; i++) {
+            powSum += pows[digits[i]];
+        }
+        
+        if (powSum == k) {
+            result.push_back(powSum);
+        }
+    }
+    
+    return result;
+}
+
+///1与，对方；1或，都是1；0与，都是0；0或，对方
+int aplusbx(int a, int b) {
+    int result = 0;
+    bool carry = 0;
+    for (int i = 0; i<sizeof(int)*8; i++) {
+        int digitA = a &1;
+        int digitB = b &1;
+        
+        bool one = false;
+        if (digitA ^ digitB) {  //和为1
+            if (!carry) {
+                one = true;
+            }
+        }else{  //和为0
+            if (digitA) {
+                if (carry) {
+                    one = true;
+                }
+                carry = true;
+            }else{
+                if (carry) {
+                    one = true;
+                    carry = false;
+                }
+            }
+        }
+        
+        if (one) {
+            result |= (1<<i);
+        }
+        
+        a >>= 1;
+        b >>= 1;
+    }
+    
+    return result;
+}
+
+void rotateString(string &str, int start, int end){
+    int i = start, j = end;
+    while (i<j) {
+        char temp = str[i];
+        str[i] = str[j];
+        str[j] = temp;
+        
+        i++;
+        j--;
+    }
+}
+
+void rotateString(string &str, int offset) {
+    int len = (int)str.length();
+    if (len == 0) {
+        return;
+    }
+    offset %= len;
+    if (offset == 0) {
+        return;
+    }
+    
+    rotateString(str, 0, len-offset-1);
+    rotateString(str, len-offset, len-1);
+    rotateString(str, 0, len-1);
+}
+
+
+vector<int> twoSum(vector<int> &numbers, int target) {
+    
+    vector<int> result;
+    unordered_map<int, int> hash;
+    for (int i = 0; i < numbers.size(); ++i) {
+        if (hash.find(target - numbers[i]) != hash.end()) {
+            result.push_back(hash[target - numbers[i]]);
+            result.push_back(i);
+            break;
+        }
+        hash[numbers[i]] = i;
+    }
+    
+    return result;
+}
+
+static int XORMerge(int &a, int &b){
+    return a^b;
+}
+
+vector<int> intervalXOR(vector<int> &A, vector<Interval> &query) {
+    typedef TFDataStruct::SegmentTree<int, XORMerge> SegmentTree;
+    auto root = SegmentTree::build(A);
+    vector<int> result;
+    for (auto &qu : query){
+        result.push_back(SegmentTree::query(root, qu.start, qu.end+qu.start-1));
+    }
+    
+    return result;
+}
+
+//q(n*a1-n+n*(n-1)/2)
+int getSum(int A, int B) {
+    int start = (A+2)/3;
+    int end = B/3;
+    
+    int count = end-start+1;
+    return 3*(count*start+count*(count-1)/2);
+}
+
+char firstUniqChar(string &str) {
+    unordered_map<char, int> mark;
+    for (auto &c : str){
+        mark[c]++;
+    }
+    
+    for (auto &c : str){
+        if (mark[c] == 1) {
+            return c;
+        }
+    }
+    
+    return '\0';
+}
+
+bool isUnique(string &str) {
+    bool mark[256];
+    memset(mark, 0, sizeof(mark));
+    
+    for (auto &c : str){
+        if (mark[c]) {
+            return false;
+        }else{
+            mark[c] = true;
+        }
+    }
+    
+    return true;
+}
+
+int strStr(string &source, string &target) {
+    int len1 = (int)source.length(), len2 = (int)target.length();
+    for (int x = 0; x<=len1-len2; x++) {
+        int i = x, j = 0;
+        while (i< len1 && j<len2 && source[i] == target[j]) {
+            i++;
+            j++;
+        }
+        if (j == len2) {
+            return x;
+        }
+    }
+    return -1;
+}
+
+bool isLegalIdentifier(string &str) {
+    if (str.length() == 0) {
+        return true;
+    }
+    if (str.front()>='0' && str.front() <= '9') {
+        return false;
+    }
+    
+    for (auto &c : str){
+        if (c =='_' ||
+            (c<='9' && c >= '0') ||
+            (c<='z' && c >= 'a') ||
+            (c<='Z' && c >= 'A')) {
+            continue;
+        }else{
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+void sortIntegers(vector<int> &A) {
+    for (int i = 1; i<A.size(); i++) {
+        int cur = A[i];
+        int j = i-1;
+        while (j>=0 && A[j]>cur) {
+            A[j+1] = A[j];
+            j--;
+        }
+        A[j+1] = cur;
+    }
+}
+
+static bool intervalComp(Interval &a, Interval &b){
+    return a.start < b.start;
+}
+bool canAttendMeetings(vector<Interval> &intervals) {
+    sort(intervals.begin(), intervals.end(), intervalComp);
+    
+    auto &lastInterval = intervals.front();
+    for (int i = 1; i< intervals.size(); i++){
+        if (intervals[i].start<=lastInterval.end) {
+            return false;
+        }
+        lastInterval = intervals[i];
+    }
+    
+    return true;
+}
+
+int deduplication(vector<int> &nums) {
+    if (nums.size() < 2) {
+        return (int)nums.size();
+    }
+    
+    unordered_map<int, bool> exist;
+    exist[nums.front()] = true;
+    
+    int i = 1, j = 1;
+    while (j < nums.size()) {
+        if (exist.find(nums[j]) == exist.end()) {
+            nums[i]=nums[j];
+            exist[nums[j]] = true;
+            i++;
+        }
+        j++;
+    }
+    
+    return i;
+}
+
+///最小堆，然后求和
+string depress(int m, int k, vector<int> &arr) {
+    //维持k个最小值s，使用最大堆
+    TFDataStruct::heap<int> minHeap(false, k);
+    
+    for (auto &num : arr){
+        if (!minHeap.isFull()) {
+            minHeap.append(num);
+        }else{
+            cout<<minHeap<<endl;
+            if (num < minHeap.getTop()) {
+                minHeap.replaceTop(num); //跟新顶部
+            }
+        }
+    }
+    
+    cout<<minHeap<<endl;
+    
+    int sum = 0;
+    while (!minHeap.isEmpty()) {
+        sum += minHeap.popTop();
+    }
+    
+    return sum<m?"yes":"no";
+}
+
+
+
+//思路归纳： 一个查找区间，目标确定在这个区间内，将区间划分成两部分，判定区间在左边还是在右边，然后就可以缩小查找区间。循环不变体是：目标在查找区间内；变化过程是：区间的二分切割；退出条件时：区间缩小到长度为1.
+//再高一层的抽象为：大问题化小，小到一定程度，问题便非常简单可解了。
+int getAns(vector<int> &a) {
+    if (a.empty()) {
+        return -1;
+    }
+    int mid = (int)(a.size()-1)/2;
+    vector<int> copy = a;
+    int left = 0, right = (int)a.size()-1;
+    while (left < right) {
+        int k = partion(copy, left, right);
+        printVectorOneLine(copy);
+        printf("k=%d\n",k);
+        if (k==mid) {
+            left = right = k;
+            break;
+        }else if (k < mid) {
+            left = k+1;
+        }else{
+            right = k-1;
+        }
+    }
+    
+    int find = copy[left];
+    for (int i = 0; i<a.size(); i++) {
+        if (a[i] == find) {
+            return i;
+        }
+    }
+    
+    return -1;
+}
+
+int maximumSwap(int num) {
+    if (num < 10) {
+        return num;
+    }
+    vector<int> digits;
+    int num2 = num;
+    while (num2 > 0) {
+        digits.push_back(num2%10);
+        num2 /= 10;
+    }
+    
+    int maxIdx = 0, maxNum = digits.front();
+    int change1 = -1, change2 = -1;
+    for (int i = 1; i<digits.size(); i++) {
+        if (digits[i]>maxNum) {
+            maxNum = digits[i];
+            maxIdx = i;
+        }else if (digits[i] < maxNum){
+            change1 = maxIdx;
+            change2 = i;
+        }
+    }
+    
+    if (change1 >= 0) {
+        int temp = digits[change1];
+        digits[change1] = digits[change2];
+        digits[change2] = temp;
+    }
+    
+    int result = 0, weight = 1;
+    for (auto &d : digits){
+        result += d*weight;
+        weight *= 10;
+    }
+    
+    return result;
+}
+
+int countNodes(ListNode * head) {
+    int count = 0;
+    ListNode *cur = head;
+    while (cur) {
+        count++;
+        cur = cur->next;
+    }
+    
+    return count;
+}
+
+ListNode * middleNode(ListNode * head) {
+    if (head == nullptr) {
+        return nullptr;
+    }
+    
+    ListNode *slow = head, *fast = head;
+    bool go = true;
+    while (1) {
+        fast = fast->next;
+        if (!fast) {
+            break;
+        }
+        go = !go;
+        if (go) {
+            slow = slow->next;
+        }
+    }
+    
+    return slow;
+}
+
+ListNode * insertNode(ListNode * head, int val) {
+    
+    ListNode *newNode = new ListNode(val);
+    if (head == nullptr) {
+        return newNode;
+    }
+    
+    ListNode *cur = head, *last = nullptr;
+    while (cur && cur->val < val) {
+        last = cur;
+        cur = cur->next;
+    }
+    
+    if (last) {
+        last->next = newNode;
+    }else{
+        head = newNode;
+    }
+    newNode->next = cur;
+    
+    return head;
+}
+
+vector<int> reverseStore(ListNode * head) {
+    vector<int> result;
+    ListNode *cur = head;
+    while (cur) {
+        result.insert(result.begin(), cur->val);
+        cur = cur->next;
+    }
+    
+    return result;
+}
+
+ListNode * deleteNode(ListNode * head, int n, int m) {
+    ListNode *pre = nullptr, *after = nullptr, *cur = head;
+    int index = 0;
+    while (cur) {
+        
+        if (index == n-1) {
+            pre = cur;
+        }else if (index == m){
+            after = cur->next;
+            break;
+        }
+        
+        index++;
+        cur = cur->next;
+    }
+    
+    if (pre == nullptr) {
+        return after;
+    }
+    pre->next = after;
+    return pre;
+}
+
+bool findHer(vector<string> &maze, Point start, Point end){
+    if (maze[start.x][start.y] == '*' ||
+        start.x<0||
+        start.x >= maze.size() ||
+        start.y <0||
+        start.y >= maze.front().size()) {
+        return false;
+    }
+    
+    if (start.x == end.x && start.y == end.y) {
+        return true;
+    }
+    
+    maze[start.x][start.y] = '*';
+    if (findHer(maze, {start.x+1, start.y}, end)) {
+        return true;
+    }
+    if (findHer(maze, {start.x-1, start.y}, end)) {
+        return true;
+    }
+    if (findHer(maze, {start.x, start.y+1}, end)) {
+        return true;
+    }
+    if (findHer(maze, {start.x, start.y-1}, end)) {
+        return true;
+    }
+    //    maze[start.x][start.y] = '.';
+    
+    return false;
+}
+
+class MyStringHashMap{
+    struct ListNode {
+    public:
+        int val = 0;
+        string key;
+        ListNode *next;
+        ListNode(string &key) {
+            this->key = key;
+            this->next = NULL;
+        }
+    };
+    
+    int size;
+    ListNode *data;
+    hash<string> hashCreator;
+    
+    int visitCount = 0;
+    long long visitStep = 0;
+    
+    ListNode *findNodeWithKey(string &key){
+        visitCount++;
+        auto pos = hashCreator(key)%size;
+        ListNode &head = data[pos];
+        
+        ListNode *cur = head.next, *last = &head;
+        visitStep++;
+        while (cur && cur->key.compare(key) != 0) {
+            last = cur;
+            cur = cur->next;
+            visitStep++;
+        }
+        
+        //        if (cur == nullptr) {
+        //            cur = new ListNode(key);
+        //        }else{
+        //            last->next = cur->next;
+        //        }
+        //        //被访问的都插到开头，采用类似LRU的策略
+        //        cur->next = head.next;
+        //        head.next = cur;
+        
+        if (cur == nullptr) {
+            cur = new ListNode(key);
+            last->next = cur;
+        }
+        
+        return cur;
+    }
+    
+public:
+    MyStringHashMap(int size):size(size){
+        data = (ListNode*)malloc(size*sizeof(ListNode));
+        memset(data, 0, sizeof(ListNode)*size);
+    };
+    
+    int& operator[](string &key){
+        ListNode *find = findNodeWithKey(key);
+        return find->val;
+    }
+};
+
+vector<int> getAns(vector<int> &op, vector<string> &name, vector<int> &w) {
+    //    unordered_map<string, int> accounts;
+    int size = (int)op.size();
+    MyStringHashMap accounts(size/2);
+    
+    vector<int> result(op.size(), 0);
+    for (int i = 0; i<size; i++) {
+        string &key = name[i];
+        int m = accounts[key];
+        if (!op[i]) {
+            result[i] = accounts[key] = m+w[i];
+        }else{
+            if (m < w[i]) {
+                result[i] = -1;
+            }else{
+                result[i] = accounts[key] = m-w[i];
+            }
+        }
+    }
+    
+    return result;
+}
+
+bool findHer(vector<string> &maze) {
+    
+    Point start, end;
+    
+    int x = 0, y = 0;
+    for (auto & str : maze){
+        y = 0;
+        for (auto &c : str){
+            if (c == 'S') {
+                start = {x, y};
+            }else if (c == 'T'){
+                end = {x,y};
+            }
+            y++;
+        }
+        x++;
+    }
+    
+    return findHer(maze, start, end);
+}
+
+
+///1. 通过范围来避免重复  2. 检查每个参数的定义和它们的传值是否正确 3. 审题，输出结果是否是题目需求
+void getWays(vector<int> &a, int start, int k, int sum, int &count) {
+    
+    if (k == 0) {
+        if (isPrimeNum(sum)) {
+            count++;
+        }
+        return;
+    }
+    
+    for (int i = start; i<a.size(); i++) {
+        getWays(a, i+1, k-1, sum+a[i], count);
+    }
+}
+
+int getWays(vector<int> &a, int k) {
+    int count = 0;
+    getWays(a, 0, k, 0, count);
+    
+    return count;
+}
+
+long long getAnsxx(vector<int> &atk) {
+    sort(atk.begin(), atk.end());
+    
+    int sum = 0;
+    int idx = 0;
+    for (int k = atk.size()-1; k>0; k--) {
+        sum += k*atk[idx];
+    }
+    
+    return sum;
+}
+
+//使用贪心算法的问题在于：类似 9 7 8 9，如果给两次机会，那么贪心(9+(7+8)) 9结果24、9
+//而实际更好的解答是(9+7)(8+9)，结果16 17
+//以最小值为核心的贪心策略是不成立的，因为需要考虑到以后的变化，这个就和贪心只考虑局部的主旨冲突了
+int getDistance(int n, int m, int target, vector<int> &d) {
+    
+    vector<pair<int, int>> gaps;
+    vector<int> gaps2;
+    int pre = 0;
+    for (int i = 0; i<d.size(); i++) {
+        gaps.push_back({d[i]-pre, i});
+        gaps2.push_back(d[i]-pre);
+        pre = d[i];
+    }
+    gaps.push_back({target-pre, n});
+    
+    
+    
+    for (int i = 0; i<m; i++) {
+        int minIdx = -1, minVal = INT_MAX;
+        for (int j = 0; j<gaps.size(); j++) {
+            if (gaps[j].first < minVal) {
+                minVal = gaps[j].first;
+                minIdx = j;
+            }
+        }
+        
+        int left = INT_MAX,right = INT_MAX;
+        if (minIdx>0) {
+            left = gaps[minIdx-1].first;
+        }
+        if (minIdx<gaps.size()-1) {
+            right = gaps[minIdx+1].first;
+        }
+        
+        printf("移除 %d\n",gaps[minIdx].second);
+        
+        if (left < right) {
+            gaps[minIdx].first += gaps[minIdx-1].first;
+            gaps.erase(gaps.begin()+minIdx-1);
+            //            printf("融合%d, %d + %d= %d[%d]\n",minIdx-1,left,minVal,left+minVal,minVal);
+        }else{
+            gaps[minIdx+1].first += gaps[minIdx].first;
+            gaps.erase(gaps.begin()+minIdx);
+            //            printf("融合%d, %d + %d= %d[%d]\n",minIdx,minVal,right,right+minVal,minVal);
+        }
+        
+        //        printVectorOneLine(gaps);
+    }
+    
+    int minVal = INT_MAX;
+    for (int j = 0; j<gaps.size(); j++) {
+        if (gaps[j].first < minVal) {
+            minVal = gaps[j].first;
+        }
+    }
+    
+    bool save[d.size()];
+    memset(save, 0, sizeof(save));
+    for (auto &p : gaps){
+        printf("保留 %d\n",p.second);
+        save[p.second] = true;
+    }
+    
+    for (int i = 0; i<gaps2.size(); i++) {
+        
+        if (save[i]) {
+            printf(" %d ",gaps2[i]);
+        }else{
+            printf(" [%d] ",gaps2[i]);
+        }
+    }
+    
+    return minVal;
+}
+
+int moveCount(vector<int> &d, int minGap){
+    int count = 0;
+    int pre = 0;
+    for (int i = 0; i<d.size(); i++) {
+        if (d[i]-pre<minGap) {
+            count++;
+        }else{
+            pre = d[i];
+        }
+    }
+    
+    return count;
+}
+
+void showGaps(vector<int> &d, int minGap){
+    int pre = 0;
+    for (int i = 0; i<d.size(); i++) {
+        if (d[i]-pre<minGap) {
+            printf(" [%d] ",d[i]-(i==0?pre:d[i-1]));
+        }else{
+            printf(" %d ",d[i]-(i==0?pre:d[i-1]));
+            pre = d[i];
+        }
+    }
+    
+    printf("\n");
+    pre = 0;
+    for (int i = 0; i<d.size(); i++) {
+        if (d[i]-pre>minGap) {
+            printf("%d ",d[i]-pre);
+            pre = d[i];
+        }
+        
+    }
+}
+
+int getDistance2(int n, int m, int target, vector<int> &d){
+    
+    
+    //从左到右，距离递增，次数也递增；左侧count小，则条件左侧为count<=m,右侧为count>m
+    //[i,j]都是考察范围，范围以外是左右侧
+    int i = 0, j = target;
+    while (i<=j) {
+        int mid = i+(j-i)/2;
+        int count = moveCount(d, mid);
+        if (count <= m) {
+            i = mid+1;
+        }else{
+            j = mid-1;
+        }
+    }
+    
+    showGaps(d, j);
+    
+    return j;
+}
+
+/*
+ 如果没局大家都是玩家，那么结果是固定的，现在每局有一个人是裁判，那么问题就转为对裁判的分配问题。
+ 现在采取的策略是谁的玩家次数有多余，就给谁分配裁判。如果裁判数量多余，那么肯定是失败的。因为多余的裁判分配到某个人身上，它的玩家次数就不满足自己的期望了，就失败。
+ 问题是裁判可以全部分配完，这样的分配就一定具有可行性吗？临界情况就是每个人当玩家的次数刚好是自己的期望。
+ 然而，这个游戏过程没有任何的阻碍，分配好裁判后，就一定可以执行到结果，根本不存在不可行的问题。
+ */
+
+/*
+ 1. 当游戏数固定的时候，裁判的分配才会影响最后的结果，分配完，执行的顺序不影响结果。
+ 2. 纠结执行顺序是因为我们希望更快的消灭"当玩家"的期望，这是一种线性的思维，导致我们会去在意当前每一步的操作。这里总结就是“贪心结果是一样的”
+ 3. 二分法把次数变成了定量，而满足"当玩家"的期望的程度变成了变量，而题目本身是期望是定量（也就是得到满足），而数量是变量。二分法直接把思维的方向给调换了。
+ 4. 之所以可以用二分法做这样的调换，在于这两个变量之间的单调性，即次数越多，满足程度就越大，这样两者之间是一种确定的关系，从而才可以做推倒。从这一点出发，倘若两者之间是一个函数y=f(x)的复杂关系，如果可以加入新的变量/定义，形成行的关系x1,y1,是的它们h之间是单调关系，那么也是可行的。
+ */
+bool canGameOver(vector<int> &A, long long gameCount){
+    long long freeCount = 0;
+    for (auto &c : A){
+        freeCount += gameCount-c;
+    }
+    
+    return freeCount>=gameCount;
+}
+
+/*
+ 用了二分法的思路，被二分的考察数据是玩游戏的次数。二分的核心问题之一就是如何快速判定中位数时的解的情况，从而拆分考察范围。
+ 这里就是：执行了k次游戏时，是否可以满足所有人当玩家的期望
+ */
+long long playGames(vector<int> &A) {
+    int maxVal = -1;
+    for (int i = 0; i<A.size(); i++) {
+        if (A[i]>maxVal) {
+            maxVal = A[i];
+        }
+    }
+    
+    long long i = maxVal, j = maxVal*2;
+    //[i,j)
+    while (i<j) {
+        long long mid = i+(j-i)/2;
+        if (canGameOver(A, mid)) {
+            j = mid;
+        }else{
+            i = mid+1;
+        }
+    }
+    
+    return j;
+}
+
+//bool roundGame(vector<int> &A){
+//    int minVal = INT_MAX, minIdx = -1;
+//    for (int i = 0; i<A.size(); i++) {
+//        if (A[i]<minVal) {
+//            minVal = A[i];
+//            minIdx = i;
+//        }
+//        A[i]--;
+//    }
+//
+//    A[minIdx]++;
+//
+//
+//    for (auto &c : A){
+//        if (c > 0) {
+//            return false;
+//        }
+//    }
+//
+//    return true;
+//}
+
+long long playGames1(vector<int> &A) {
+    int count = 0;
+    while (1) {
+        sort(A.begin(), A.end());
+        if (A.front() <= 0) {
+            return count + A.back();
+        }
+        int count1 = A[1]-A[0]+1;
+        for (int i = 1; i<A.size(); i++) {
+            A[i] -= count1;
+        }
+        count += count1;
+    }
+    
+    return count;
+}
+
+long long playGames2(vector<int> &A) {
+    
+    if (A.size() == 2) {
+        return A[0]+A[1];
+    }
+    
+    int maxVal = -1;
+    for (int i = 0; i<A.size(); i++) {
+        if (A[i]>maxVal) {
+            maxVal = A[i];
+        }
+    }
+    
+    return maxVal;
+}
+
+template<class T>
+int binaryFindLower(vector<T> &nums, T target){
+    int i = -1, j = (int)nums.size();  //左 <, 右 >,边界不包含
+    while (i<j-1) {
+        int mid = i+(j-i)/2;
+        if (nums[mid] == target) {
+            return mid;
+        }else if (nums[mid] < target){
+            i = mid;
+        }else{
+            j = mid;
+        }
+    }
+    return i;
+}
+
+long long doingHomework(vector<int> &cost, vector<int> &val) {
+    vector<long long> calculateCost;
+    int pre = 0;
+    for (auto &c : cost){
+        pre += c;
+        calculateCost.push_back(pre);
+    }
+    
+    printVectorOneLine(calculateCost);
+    
+    long long sum = 0;
+    for (int v : val){
+        int idx = binaryFindLower(calculateCost, (long long)v);
+        if (idx >= 0) {
+            //            printf("%d --> %lld \n",v,calculateCost[idx]);
+            sum += calculateCost[idx];
+        }
+    }
+    
+    return sum;
+}
+
+/*
+ 思考了之后，发现跟“玩游戏”那一题竟然同一个模型。
+ 都是俄罗斯方块消除的模型：那一题消除的是每个人玩游戏的期望，这题消除的是任务。
+ 如果都看成是任务：那么那题是每一轮有一个任务不做，其他的都做，总数时人数；这题是选出n个任务做,n是相同任务之间的空隙+1，就是周期的长度。区别只是这一点，目标都是球把所有任务做完的最短次数。
+ 但是这一题似乎无法用二分法，很难快速的从次数直接得到是否成功，这个是拆分区间的关键。
+ */
+int leastInterval(string &tasks, int n) {
+    vector<int> heights(26,0);
+    
+    for (auto &c : tasks){
+        heights[c-'A']++;
+    }
+    
+    n += 1;
+    int totalCount = 0;
+    
+    if (n < 26) {
+        do {
+            sort(heights.begin(), heights.end());
+            int first = heights[26-n];
+            if (first <= 0) {
+                totalCount += heights.back();
+                break;
+            }
+            totalCount += first;
+            
+            for (int i = 26-n; i<heights.size(); i++) {
+                heights[i] -= first;
+            }
+            
+        } while (1);
+    }else{
+        sort(heights.begin(), heights.end());
+        totalCount += heights.back();
+    }
+    
+    int lastRowCount = 0, maxVal = heights.back();
+    for (int i = 25; i>=0; i--) {
+        if (heights[i] == maxVal) {
+            lastRowCount++;
+        }else{
+            break;
+        }
+    }
+    
+    totalCount *= n;
+    if (lastRowCount<n) {
+        totalCount -= (n-lastRowCount);
+    }
+    
+    return totalCount;
+}
+
+int stackSorting(stack<int> &stk) {
+    stack<int> stk2;
+    
+    while (!stk.empty()) {
+        int top = stk.top();
+        stk.pop();
+        
+        int backCount = 0;
+        while (!stk2.empty() && stk2.top()>top) {
+            stk.push(stk2.top());
+            stk2.pop();
+            backCount++;
+        }
+        
+        stk2.push(top);
+        for (int i = 0; i<backCount; i++) {
+            stk2.push(stk.top());
+            stk.pop();
+        }
+    }
+    
+    stk = stk2;
+    
+    return 0;
+}
+
+class MyQueue {
+    stack<int> stack1;
+    stack<int> stack2;
+    
+    void move(){
+        while (!stack1.empty()) {
+            stack2.push(stack1.top());
+            stack1.pop();
+        }
+    }
+    
+public:
+    MyQueue() {
+        
+    }
+    
+    void push(int element) {
+        stack1.push(element);
+    }
+    
+    int pop() {
+        if (stack2.empty()) {
+            move();
+        }
+        int val = stack2.top();
+        stack2.pop();
+        return val;
+    }
+    
+    int top() {
+        if (stack2.empty()) {
+            move();
+        }
+        return stack2.top();
+    }
+};
+
+/** 验证出栈序列的合法性，如果合法，则返回栈内数量最多是的个数，否则返回0 */
+//我使用的判断逻辑是：元素pop(i)之后所有小于它的元素都是单调递减的。这时的pop指的是入栈序列构成的出栈序列，而不是值本身。
+int isLegalSeq(vector<int> &popIndexes){
+    
+    int count = (int)popIndexes.size();
+    bool checked[count];
+    memset(checked, 0, sizeof(checked));
+    
+    int maxCount = 0;
+    for (int i = 0; i<count; i++) {
+        if (checked[i]) {
+            continue;
+        }
+        
+        int lessCount = 1;
+        int ref = popIndexes[i], last = ref;
+        for (int j = i+1; j<count; j++) {
+            int cur = popIndexes[j];
+            if (cur < ref) {
+                if (cur>last) {
+                    return -1;
+                }else{
+                    last = cur;
+                    checked[j] = true;
+                    lessCount++;
+                }
+            }
+        }
+        
+        if (lessCount > maxCount) {
+            maxCount = lessCount;
+        }
+    }
+    
+    return maxCount;
+}
+
+bool isLegalSeq(vector<int> &push, vector<int> &pop) {
+    //    unordered_map<int, vector<int>> pushIndexes;
+    //    for(int i = 0; i<push.size(); i++){
+    //        if (pushIndexes.find(push[i]) == pushIndexes.end()) {
+    //            pushIndexes[push[i]] = {i};
+    //        }else{
+    //            pushIndexes[push[i]].push_back(i);
+    //        }
+    //    }
+    
+    //不考虑重复问题
+    unordered_map<int, int> pushIndexes;
+    for(int i = 0; i<push.size(); i++){
+        pushIndexes[push[i]] = i;
+    }
+    
+    int count = (int)pop.size();
+    vector<int> popIndexes(count, 0);
+    for (int i = 0; i<count; i++) {
+        popIndexes[i] = pushIndexes[pop[i]];
+    }
+    
+    return isLegalSeq(popIndexes)>=0;
+}
+
+int trainCompartmentProblem(vector<int> &arr) {
+    int maxCount = isLegalSeq(arr);
+    if (maxCount>0) {
+        maxCount -= 1;
+    }
+    return maxCount;
+}
+
 #endif /* page2_h */

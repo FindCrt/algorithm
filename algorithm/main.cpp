@@ -242,6 +242,7 @@ void combinationSum2(vector<int> &num, int target, int start, vector<int> &res, 
  4. 由第3步分化：得到解，存储解，出栈回溯；没得到，把下一步问题压入栈，进入下一轮循环。
  
  主要核心就两个： 分支选择和求解，只是分支选择的意外情况是没得选了，回溯；求解的意外情况是得到解了，回溯。
+ 准确的说，这是广义的深度搜索的步骤，不是递归的。
  */
 struct combinationSumNode{
     int start;

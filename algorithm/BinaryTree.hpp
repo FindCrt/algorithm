@@ -321,6 +321,44 @@ public:
         return maxDeap;
     }
     
+    //先序遍历
+    static TreeNode* copy(TreeNode *root, int delta = 0){
+        if (root == nullptr) {
+            return nullptr;
+        }
+        
+        stack<TreeNode *> path;
+        path.push(root);
+        
+        TreeNode *copyRoot = new TreeNode(root->val+delta);
+        stack<TreeNode *> copyPath;
+        copyPath.push(copyRoot);
+        
+        while (!path.empty()) {
+
+            auto cur = path.top();
+            auto copyCur = copyPath.top();
+            
+            path.pop();
+            copyPath.pop();
+            
+            if (cur->right) {
+                path.push(cur->right);
+                
+                copyCur->right = new TreeNode(cur->right->val+delta);
+                copyPath.push(copyCur->right);
+            }
+            if (cur->left) {
+                path.push(cur->left);
+                
+                copyCur->left = new TreeNode(cur->left->val+delta);
+                copyPath.push(copyCur->left);
+            }
+        }
+        
+        return copyRoot;
+    }
+    
     struct PathSum{
         TreeNode *node = nullptr;
         int sum = 0;

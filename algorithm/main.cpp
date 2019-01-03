@@ -21,6 +21,8 @@
 #include <unordered_set>
 #include <fstream>
 #include<stdlib.h>
+#include "TypicalProblems.hpp"
+#include "DeapFirstSearch.hpp"
 //#include "page1.hpp"
 
 #include "TFSort.h"
@@ -303,21 +305,340 @@ vector<vector<int>> combinationSum2(vector<int> &num, int target) {
     return result;
 }
 
+void solveNQueens(int n, int idx, vector<vector<string>> &result, vector<int> &placed){
+    if (idx == n) {
+        vector<string> ans(n, string(n, '.'));
+        for (int i = 0; i<n; i++) {
+            ans[i][placed[i]] = 'Q';
+        }
+        result.push_back(ans);
+        return;
+    }
+    
+    bool forbidden[n];
+    memset(forbidden, 0, sizeof(forbidden));
+    
+    for (int i = 0; i<idx; i++) {
+        forbidden[placed[i]] = true;
+        int left = placed[i]-(idx-i), right = placed[i]+(idx-i);
+        if (left >= 0) {
+            forbidden[left] = true;
+        }
+        if (right < n) {
+            forbidden[right] = true;
+        }
+    }
+    
+    for (int i = 0; i<n; i++) {
+        if (!forbidden[i]) {
+            placed[idx] = i;
+            solveNQueens(n, idx+1, result, placed);
+        }
+    }
+}
+
+vector<vector<string>> solveNQueens(int n){
+    vector<int> placed(n, 0);
+    vector<vector<string>> result;
+    solveNQueens(n, 0, result, placed);
+    
+    return result;
+}
+
+
+struct NQueenNode {
+    int idx;
+    bool *forbidden;
+};
+
+vector<vector<string>> solveNQueens_dfs(int n){
+    vector<int> placed(n, 0);
+    vector<vector<string>> result;
+    
+    stack<NQueenNode> path;
+    path.push({0, nullptr});
+    
+    while (!path.empty()) {
+        auto &cur = path.top();
+        
+        //1. 做选择。place代表当前行的皇后放在第几列上
+        int place = 0;
+        if (cur.forbidden == nullptr) {
+            
+            //皇后不能在同行同列和斜线上，由之前皇后的放置情况确定当前行禁止的位置
+            bool *forbidden = (bool*)malloc(sizeof(bool)*n);
+            memset(forbidden, 0, sizeof(sizeof(bool)*n));
+            
+            for (int i = 0; i<cur.idx; i++) {
+                forbidden[placed[i]] = true;
+                int left = placed[i]-(cur.idx-i), right = placed[i]+(cur.idx-i);
+                if (left >= 0) {
+                    forbidden[left] = true;
+                }
+                if (right < n) {
+                    forbidden[right] = true;
+                }
+            }
+            
+            cur.forbidden = forbidden;
+        }else{
+            place = placed[cur.idx]+1;
+        }
+        
+        //有些选择是直接跳到下一条路就可以了，这里还需要越过许多障碍，就是那些不能放皇后的地方
+        while (place < n && cur.forbidden[place]) {
+            place++;
+        }
+        
+        //2. 只有两种情况时回溯：1. 没有下一步的路了 2.得到解了
+        if (place == n) { //没有进一步的选择了
+            path.pop();
+        }else{
+            placed[cur.idx] = place;
+            if (cur.idx == n-1) {  //得到解了
+                vector<string> ans(n, string(n, '.'));
+                for (int i = 0; i<n; i++) {
+                    ans[i][placed[i]] = 'Q';
+                }
+                result.push_back(ans);
+                path.pop();
+            }else{
+                path.push({cur.idx+1, nullptr});
+            }
+        }
+    }
+    
+    return result;
+}
+
+//570. 寻找丢失的数 II
+//n其实不用给，可以通过str的长度推测出来，对于一个数n，位数为kn，从1-n所有数长度之和为f(n),则丢失一个数的字符串长度为f(n)-kx,kx是丢失的数的长度，而kx的范围是[1,kn],则字符串范围是[f(n)-kn,f(n)-1]；那么前一个数即n-1的范围是[f(n-1)-kn1, f(n-1)-1],kn1是n-1的长度，而f(n)=f(n-1)+kn,则范围转化为[f(n)-kn-kn1, f(n)-kn-1],所以看得出两个区间是不会重叠的，这也就表示数n和字符串长度存在唯一的关联关系。
+int findMissing2(int n, string &str) {
+    int count[10];
+    memset(count, 0, sizeof(count));
+    
+    for (int i = 1; i<=min(9, n); i++) {
+        count[i]++;
+    }
+    int digit1 = 1, digit2 = 0;
+    for (int i = 10; i<=n; i++) {
+        count[digit1]++;
+        count[digit2]++;
+        digit2++;
+        if (digit2==10) {
+            digit1++;
+            digit2=0;
+        }
+    }
+    
+    for (auto &c : str){
+        count[c-'0']--;
+    }
+    
+    int miss1=-1, miss2 = -1;
+    for (int i = 0; i<10; i++) {
+        if (count[i]==1) {
+            if (miss1<0) {
+                miss1 = i;
+            }else{
+                miss2 = i;
+            }
+        }else if (count[i] == 2){
+            miss1 = miss2 = i;
+        }
+    }
+    
+    int result=0;
+    if (miss2<0) {
+        result = miss1;
+    }else{
+        if (miss1 == 0) {
+            result = miss2*10+miss1;
+        }else{
+            result = miss1*10+miss2;
+        }
+    }
+    
+    //因为n<=30,所以除了21，都是前面数小
+    if (result == 12 && str.find("12") != string::npos) {
+        return 21;
+    }
+    
+    return result;
+}
+
+TreeNode *copyTree(TreeNode *root, int delta){
+    return TreeNode::copy(root, delta);
+}
+
+/** 虽然这题用来训练dfs很好，但实际用动态规划更好，因为区间[1,k]和[x+1,x+k]构建二叉树的逻辑是一样的，只是每个对应位置的数叠加x,所以问题就有区间这两个变量变成了长度这一个变量。
+ 在求出长度为1...k-1的问题后，再求长度为k的问题，选取根节点后，左右区间长度<=k-1,都是已经求出的结果，所以很快就可以得到解。
+ 奇怪速度并没有加快
+ */
+vector<TreeNode *> generateTrees_dp(int n){
+    if(n==0) return {nullptr};
+    vector<TreeNode *> save[n+1];
+    save[0] = {nullptr};
+    save[1] = {new TreeNode(1)};
+    
+    double lastCount = 1;
+    for (int i = 2; i<=n; i++) {
+        long generateTreeCount = 0;
+        for (int j = 1; j<=i; j++) {
+            
+            for (auto &t : save[i-j]){
+//                auto r = copyTree(t, j); //格式相同，叠加一个差值
+                auto r = t;
+                for (auto &l : save[j-1]){
+                    generateTreeCount++;
+                    auto node = new TreeNode(j);
+                    node->left = l;
+                    node->right = r;
+                    save[i].push_back(node);
+                }
+            }
+        }
+        
+        printf("[%d] %ld, %.3f\n",i,generateTreeCount,generateTreeCount/lastCount);
+        lastCount = generateTreeCount;
+    }
+    
+    return save[n];
+}
+
+pair<int, int> houseRobber3_pair(TreeNode * root) {
+    if (root == nullptr) {
+        return {0,0};
+    }
+    auto left = houseRobber3_pair(root->left);
+    auto right = houseRobber3_pair(root->right);
+    
+    int involveMax = root->val + left.second + right.second;
+    int uninvolveMax = max(left.first, left.second) + max(right.first, right.second);
+    
+    return {involveMax, uninvolveMax};
+}
+
+//535. 打劫房屋 III
+int houseRobber3(TreeNode * root) {
+    auto p = houseRobber3_pair(root);
+    return max(p.first, p.second);
+}
+
+//第1个值是整个数里最长路径，第2个值是从root开始到叶节点最长路径，但数值是递增的，第3个值是递减路径
+vector<int> longestConsecutive2_pair(TreeNode * root){
+    
+    if (root == nullptr) {
+        return {0, 0, 0};
+    }
+    
+    auto left = longestConsecutive2_pair(root->left);
+    auto right = longestConsecutive2_pair(root->right);
+    
+    int incre1 = 1, decre1 = 1;
+    if (root->left) {
+        if (root->val == root->left->val+1) { //递减
+            decre1 += left[2];
+        }
+        if (root->val == root->left->val-1) {
+            incre1 += left[1];
+        }
+    }
+    int incre2 = 1, decre2 = 1;
+    if (root->right) {
+        if (root->val == root->right->val+1) { //递减
+            decre2 += right[2];
+        }
+        if (root->val == root->right->val-1) {
+            incre2 += right[1];
+        }
+    }
+    
+    int leftFirst = decre1+incre2-1;
+    int rightFirst = incre1+decre2-1;
+    int wholeMaxPath = max(max(leftFirst, rightFirst), max(left[0], right[0]));
+
+    return {wholeMaxPath, max(incre1, incre2), max(decre1, decre2)};
+}
+
+//614. 二叉树的最长连续子序列 II
+int longestConsecutive2(TreeNode * root) {
+    return longestConsecutive2_pair(root)[0];
+}
+
+bool luckyNumber(string &n, string &result, int start, int count3, int count5, bool excess){
+    if (count3<0 || count5<0) {
+        return false;
+    }
+    if (start == n.size()) {
+        return true;
+    }
+    
+    if (!excess && n[start]>'5') {
+        return false;
+    }
+    
+    if (excess || n[start]<='3') {
+        result[start] = '3';
+        if (result[start] > n[start]) {
+            excess = true;
+        }
+        if (luckyNumber(n, result, start+1, count3-1, count5, excess)) {
+            return true;
+        }
+    }
+    
+    if (excess || n[start]<='5') {
+        result[start] = '5';
+        if (result[start] > n[start]) {
+            excess = true;
+        }
+        if (luckyNumber(n, result, start+1, count3, count5-1, excess)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+string luckyNumber(string &n) {
+    
+    int size = (int)n.length()/2;
+    if (n.length() & 1 || n.empty()) {
+        return string(size+1,'3')+string(size+1, '5');
+    }
+    
+    string result(n.length(), '0');
+    if (luckyNumber(n, result, 0, size, size, false)) {
+        return result;
+    }else{
+        return string(size+1,'3')+string(size+1, '5');
+    }
+}
+
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
     
-//    uint64_t start = mach_absolute_time();
+    uint64_t start = mach_absolute_time();
     
-    vector<int> nums = {3,1,3,5,1,1};
-    auto result = combinationSum2(nums, 8);
+    vector<int> nums = {1,2,3,4};
+    string str = "355556";
+//    auto root = TreeNode::createWithArray(nums);
+    auto result = kSumIII(nums, 1, 4);
 //    printf("%d \n",result);
-    printTwoDVector(result);
+    cout<<result<<endl;
     
-//    uint64_t duration = mach_absolute_time() - start;
-//    mach_timebase_info_data_t timebase;
-//    mach_timebase_info(&timebase);
-//    double time = 1e-6 * (double)timebase.numer/timebase.denom * duration;
-//    printf("exe time: %.1f ms\n",time);
+//    printTwoDVector(result);
+//    for (auto &r : result){
+//        auto str = TreeNode::showTree(r);
+//        printVectorOneLine(str);
+//    }
+    
+    uint64_t duration = mach_absolute_time() - start;
+    mach_timebase_info_data_t timebase;
+    mach_timebase_info(&timebase);
+    double time = 1e-6 * (double)timebase.numer/timebase.denom * duration;
+    printf("exe time: %.1f ms\n",time);
 //    printf("%d \n",result);
 //    printVectorOneLine(result);
     

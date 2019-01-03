@@ -124,9 +124,6 @@ extern int kthLargestElement(int n, vector<int> &nums);
 
 //TODO: topK问题
 
-/** 查找一个数在有序数组中的范围，考虑到不存在和重复的问题；进化版的二分法 */
-extern vector<int> searchRange(vector<int> &A, int target);
-
 template<class T>
 bool canReachPoint(vector<vector<T>> &map, Point start, T wall, T road, T target, vector<Point> *path = nullptr){
     if (

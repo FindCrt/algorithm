@@ -30,6 +30,7 @@
 /* Begin PBXFileReference section */
 		18226FD2209ABD71001C461E /* page1.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = page1.hpp; sourceTree = "<group>"; };
 		182B6A6121D38BB200C42ADF /* ExampleFunc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ExampleFunc.h; sourceTree = "<group>"; };
+		1831A8AA21DC45E100DDF64C /* TypicalProblems.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TypicalProblems.hpp; sourceTree = "<group>"; };
 		18461CF4209C146C008FF3CE /* TopK.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TopK.cpp; sourceTree = "<group>"; };
 		18461CF5209C146C008FF3CE /* TopK.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TopK.hpp; sourceTree = "<group>"; };
 		184F58D41F43E38500ADC12A /* algorithm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = algorithm; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,6 +43,7 @@
 		1871A06820ABC25100C2F11C /* BinaryTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BinaryTree.hpp; sourceTree = "<group>"; };
 		1873E1B4211A76B900486DC6 /* LFUCache.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = LFUCache.hpp; sourceTree = "<group>"; };
 		187FDE82202E8AC0001EE759 /* MinStack.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MinStack.hpp; sourceTree = "<group>"; };
+		1882257021DDE55900306114 /* DeapFirstSearch.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DeapFirstSearch.hpp; sourceTree = "<group>"; };
 		1882CBB821391E70002C4F1D /* SegmentTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = SegmentTree.hpp; sourceTree = "<group>"; };
 		1882CBBB213925E7002C4F1D /* DoubleLink.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DoubleLink.hpp; sourceTree = "<group>"; };
 		1892CA9820AABB03007D7872 /* MultiwayTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MultiwayTree.hpp; sourceTree = "<group>"; };
@@ -101,6 +103,8 @@
 				18683BDB213A60BA00AE9475 /* CommonStructs.cpp */,
 				18683BDC213A60BA00AE9475 /* CommonStructs.hpp */,
 				182B6A6121D38BB200C42ADF /* ExampleFunc.h */,
+				1831A8AA21DC45E100DDF64C /* TypicalProblems.hpp */,
+				1882257021DDE55900306114 /* DeapFirstSearch.hpp */,
 			);
 			path = algorithm;
 			sourceTree = "<group>";

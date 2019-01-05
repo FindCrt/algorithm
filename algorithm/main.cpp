@@ -29,7 +29,7 @@
 #include "MinStack.hpp"
 #include "LRUCache.hpp"
 
-#include "TopK.hpp"
+//#include "TopK.hpp"
 #include "Graph.hpp"
 #include "MultiwayTree.hpp"
 #include "BinaryTree.hpp"
@@ -616,6 +616,165 @@ string luckyNumber(string &n) {
     }
 }
 
+int lengthOfLongestSubstringKDistinct(string s, int k) {
+    //#define charIndex(c) (c>='a'?(c-'a'):(c-'A'+26))
+    // write your code here
+    int maxlen = 0, uniqueCount = 0;
+    int start = 0, end = 0;
+    
+    int mark[256];
+    memset(mark, 0, sizeof(mark));
+    
+    for(int i=0;i<s.length();i++)
+    {
+        mark[s[i]]++;
+        end = i;
+        if (mark[s[i]]==1) {
+            uniqueCount++;
+        }
+        
+        while(uniqueCount>k)
+        {
+            mark[s[start]]--;
+            if(mark[s[start]]==0){
+                uniqueCount--;
+            }
+            start++;
+        }
+        
+        //        if (end-start+1>maxlen) {
+        //            cout<<s.substr(start,end-start+1)<<endl;
+        //        }
+        maxlen = max(maxlen, end-start+1);
+    }
+    return maxlen;
+}
+
+int pokeMaster(vector<int> &cards) {
+    int counts[10];
+    memset(counts, 0, sizeof(counts));
+    for (auto &n : cards){
+        counts[n]++;
+    }
+    
+    int count = 0;
+    while (1) {
+        int start = 0, end = 0;
+        int max1 = 0, maxStart = 0;
+        for (int i = 1; i<10; i++) {
+            if (counts[i] > 0) {
+                end++;
+                if (end-start > max1) {
+                    max1 = end-start;
+                    maxStart = start;
+                }
+            }else{
+                start = end = i;
+            }
+        }
+        
+        int max2 = 0, maxIdx = 0;
+        for (int i = 1; i<10; i++) {
+            if (counts[i]>max2) {
+                max2 = counts[i];
+                maxIdx = i;
+            }
+        }
+        
+        if (max2 == 0) {
+            break;
+        }
+        
+        if (max1 >= 5 && max1 > max2) {
+            for (int i = maxStart+1; i<=maxStart+max1; i++) {
+                counts[i]--;
+            }
+        }else{
+            counts[maxIdx] = 0;
+        }
+        
+        count++;
+    }
+    
+    return count;
+}
+
+class TopK {
+    struct wordRecord{
+        string word;
+        int time;
+    };
+    static inline int wordRecordComp(wordRecord* &w1, wordRecord* &w2){
+        if (w1->time < w2->time) {
+            return -1;
+        }else if (w1->time > w2->time){
+            return 1;
+        }else{
+            return w2->word.compare(w1->word);
+        }
+    }
+    
+    TFDataStruct::heap<wordRecord*> *minHeap = nullptr;
+    int size = 0;
+    unordered_map<string, wordRecord*> wordMap;
+public:
+    
+    
+    TopK(int k) {
+        size = k;
+        minHeap = new TFDataStruct::heap<wordRecord*>(wordRecordComp, k);
+    }
+    
+    void add(string &word) {
+        
+        bool inHeap = false;
+        wordRecord *wr = nullptr;
+        if (wordMap.find(word) == wordMap.end()) {
+            wr = new wordRecord;
+            wr->word = word;
+            wr->time = 1;
+            wordMap[word] = wr;
+        }else{
+            wr = wordMap[word];
+            
+            if (wr->time > minHeap->getTop()->time) {
+                inHeap = true;
+            }else if (wr->time == minHeap->getTop()->time){
+                inHeap = minHeap->exist(wr);
+            }
+            wr->time++;
+        }
+        
+        if (inHeap) {
+            minHeap->update(wr);
+        }else{
+            if (minHeap->isFull() && !minHeap->isEmpty()) {
+                auto top = minHeap->getTop();
+                if (wordRecordComp(wr, top)>0) {
+                    minHeap->replaceTop(wr);
+                }
+            }else{
+                minHeap->append(wr);
+            }
+        }
+    }
+    
+    vector<string> topk() {
+        auto limit = min((int)minHeap->getValidSize(), size);
+        vector<string> result(limit, "");
+        vector<wordRecord *> saveNodes(limit, nullptr);
+        
+        for (int i = 0; i<limit; i++) {
+            saveNodes[limit-i-1] = minHeap->getTop();
+            result[limit-i-1] = minHeap->popTop()->word;
+        }
+        for (auto val : saveNodes){
+            minHeap->append(val);
+        }
+        return result;
+    }
+};
+
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
     
@@ -624,9 +783,9 @@ int main(int argc, const char * argv[]) {
     vector<int> nums = {1,2,3,4};
     string str = "355556";
 //    auto root = TreeNode::createWithArray(nums);
-    auto result = kSumIII(nums, 1, 4);
+//    auto result = kSumIII(nums, 1, 4);
 //    printf("%d \n",result);
-    cout<<result<<endl;
+//    cout<<result<<endl;
     
 //    printTwoDVector(result);
 //    for (auto &r : result){

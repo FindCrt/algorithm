@@ -183,6 +183,15 @@ namespace TFDataStruct {
             update(_datas[index], index);
         }
         
+        bool exist(T node){
+            for (int i = 0; i<_validSize; i++) {
+                if (_datas[i] == node) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
         //size不变，一个新的进来，挤掉一个旧的
         void replace(T node, size_t index){
             //TODO: index可能越界

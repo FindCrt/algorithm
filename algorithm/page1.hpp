@@ -5224,15 +5224,7 @@ vector<string> anagrams(vector<string> &strs) {
     return result;
 }
 
-struct UndirectedGraphNode {
-    int val = 0;
-    int mark = 0;
-    vector<UndirectedGraphNode *> neighbors;
-    
-    UndirectedGraphNode *from = nullptr;
-    
-    UndirectedGraphNode(int val):val(val){};
-};
+
 
 //178. 图是否是树
 bool validTree(int n, vector<vector<int>> &edges) {

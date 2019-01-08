@@ -775,23 +775,31 @@ public:
     }
 };
 
+bool canFinish(int numCourses, vector<pair<int, int>>& prerequisites) {
+    
+    typedef TFDataStruct::DirectedGraph<int> GraphType;
+    GraphType *graph = new GraphType();
+    
+    for (int i = 0; i<numCourses; i++) {
+        graph->allNodes.push_back(GraphType::NodeType(i));
+    }
+    
+    for (auto &pair : prerequisites){
+        graph->allNodes[pair.first].adjNodes.push_back(&graph->allNodes[pair.second]);
+    }
+    return !graph->isCyclic2();
+}
+
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
     
     uint64_t start = mach_absolute_time();
     
-    vector<int> nums = {1,2,3,4};
-    string str = "355556";
-//    auto root = TreeNode::createWithArray(nums);
-//    auto result = kSumIII(nums, 1, 4);
-//    printf("%d \n",result);
-//    cout<<result<<endl;
     
-//    printTwoDVector(result);
-//    for (auto &r : result){
-//        auto str = TreeNode::showTree(r);
-//        printVectorOneLine(str);
-//    }
+    vector<pair<int, int>> require = {{5,8},{3,5},{1,9},{4,5},{0,2},{1,9},{7,8},{4,9}};
+    auto result = canFinish(10, require);
+    printf("%s\n",result?"YES":"NO");
+    
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

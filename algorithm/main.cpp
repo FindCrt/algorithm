@@ -801,7 +801,7 @@ int main(int argc, const char * argv[]) {
         values[i] = i;
     }
     vector<vector<int>> edges = {
-        {1,2},
+        {2},
         {2,3},
         {3},
         {4},
@@ -809,10 +809,12 @@ int main(int argc, const char * argv[]) {
     };
     
     auto graph = TFDataStruct::DirectedGraph<int>::createWithEdges(values, edges);
-    int len = 0;
-    auto result = graph->longestNode(&graph->allNodes[0], &len);
+    auto result = graph->shortestPath(&graph->allNodes[4], &graph->allNodes[1]);
     
-    printf("longest node: %d, length: %d\n",result->val,len);
+    for (auto &n : result){
+        printf("%d-> ",n->val);
+    }
+    printf("\n");
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

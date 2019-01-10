@@ -65,6 +65,7 @@ namespace TFDataStruct{
         }
         
         typedef void(*NodeVisitHandler)(NodeType *node, bool start, void *context);
+        typedef bool(*NodeVisitHandler2)(NodeType *pre,NodeType *cur, void *context);
         //以start节点为起点遍历所有可到达的节点，这些节点按遍历的顺序存入数组，然后返回
         //visitIdx里存放的是节点下一个要访问的邻接节点的索引，初始为0;或说正在访问的节点索引+1.
         static void DFSNode(NodeType *start, NodeVisitHandler handler, void *context, bool *cyclic){
@@ -110,7 +111,7 @@ namespace TFDataStruct{
 #define BFSIsVisited(node) (node->visit&1)
         
         //1. 返回最后一个节点 2.visit包含两部分：最后一位的0/1表示是否访问过，其他位表示距离起点的路径长度，即visit = (len<<1)|visitFlag;
-        static NodeType* BFSNode(NodeType *start, NodeVisitHandler handler, void *context){
+        static NodeType* BFSNode(NodeType *start, NodeVisitHandler2 handler, void *context){
             
             queue<NodeType *> visitQ;
             visitQ.push(start);
@@ -127,7 +128,12 @@ namespace TFDataStruct{
                         BFSSetLen(n, len+1);
                         visitQ.push(n);
                         
-                        if (handler) handler(n, true, context);
+                        if (handler){
+                            //返回true，结束整个搜索过程
+                            if (handler(front, n, context)) {
+                                return n;
+                            }
+                        };
                     }
                 }
             }
@@ -233,10 +239,12 @@ namespace TFDataStruct{
         
         //TODO: 连通分量/ 只求个数
         //TODO: 生成树
+        //TODO: 最短路径
         
-        static void longestNodeHandler(NodeType *node, bool start, void *context){
-            int len = node->visit>>1;
-            printf("(%d len: %d) ",node->val, len);
+        static inline bool longestNodeHandler(NodeType *pre, NodeType *cur, void *context){
+            int len = cur->visit>>1;
+            printf("(%d len: %d) ",cur->val, len);
+            return true;
         }
         //最远的点
         NodeType *longestNode(NodeType *start, int *length){
@@ -246,6 +254,41 @@ namespace TFDataStruct{
                 *length = BFSGetLen(last);
             }
             return last;
+        }
+        
+        static inline bool shortestPathHandler(NodeType *pre, NodeType *cur, void *context){
+            pair<unordered_map<NodeType*, NodeType *>&, NodeType*> *ctx = (pair<unordered_map<NodeType*, NodeType *>&, NodeType*>*)context;
+            
+            ctx->first[cur] = pre;
+            
+            if (cur == ctx->second) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        //最短路径
+        vector<NodeType *>shortestPath(NodeType *start, NodeType *end){
+            clearVisits();
+            
+            unordered_map<NodeType*, NodeType *>froms;
+            pair<unordered_map<NodeType*, NodeType *>&, NodeType*>context = {froms, end};
+            
+            auto last = BFSNode(start, shortestPathHandler, &context);
+            if (last != end) { //从起点没找到终点
+                return {};
+            }
+            
+            int len = BFSGetLen(last);
+            vector<NodeType*> path(len+1, nullptr);
+            while (len>=0) {
+                path[len] = last;
+                last = froms[last];
+                len--;
+            }
+            
+            return path;
         }
         
         //遍历所有节点的一条路径,用拓扑排序

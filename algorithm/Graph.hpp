@@ -16,6 +16,8 @@
 
 using namespace std;
 
+#pragma mark - 图节点加入了自定义的变量
+
 namespace TFDataStruct{
     
     //有向图节点
@@ -32,13 +34,11 @@ namespace TFDataStruct{
     //无向图节点
     template <class T>
     struct UndirectedGraphNode {
-        int val = 0;
-        int mark = 0;
-        vector<UndirectedGraphNode *> neighbors;
-        
-        UndirectedGraphNode *from = nullptr;
-        
-        UndirectedGraphNode(int val):val(val){};
+        T val;
+        UndirectedGraphNode(T val):val(val){};
+        //adjacent nodes
+        vector<UndirectedGraphNode *> adjNodes;
+        int visit = 0;
     };
     
     //有向图
@@ -48,8 +48,6 @@ namespace TFDataStruct{
     public:
         typedef DirectedGraphNode<T> NodeType;
     private:
-        //有环导致错误
-        const static int DGErrorCycle = -1;
         
         void clearVisits(){
             for (auto &node : allNodes){
@@ -69,44 +67,6 @@ namespace TFDataStruct{
         typedef void(*NodeVisitHandler)(NodeType *node, bool start, void *context);
         //以start节点为起点遍历所有可到达的节点，这些节点按遍历的顺序存入数组，然后返回
         //visitIdx里存放的是节点下一个要访问的邻接节点的索引，初始为0;或说正在访问的节点索引+1.
-        static void DFSNode(NodeType *start, unordered_map<NodeType *, int> &visitIdx, NodeVisitHandler handler, void *context, bool *cyclic){
-            
-            stack<NodeType *> path;
-            path.push(start);
-            
-            while (!path.empty()) {
-                
-                NodeType *&cur = path.top();
-                
-                //从邻接节点里找一个白色
-                NodeType *next = nullptr;
-                int nextIdx = visitIdx[cur];
-                
-                while (nextIdx<cur->adjNodes.size()) {
-                    next = cur->adjNodes[nextIdx];
-                    if (visitIdx[next] == 0) { //未访问
-                        break;
-                    }
-                    
-                    nextIdx++;
-                    //正在访问中
-                    if (cyclic && visitIdx[next]<=next->adjNodes.size()) {
-                        *cyclic = true;
-                    }
-                }
-                visitIdx[cur] = nextIdx+1;
-                
-                if (nextIdx == cur->adjNodes.size()) { //没有未访问的节点了
-                    if (handler) handler(cur, false, context); //访问结束回调
-                    path.pop();
-                    continue;
-                }
-                
-                path.push(next);
-                if (handler) handler(next, true, context);  //访问开始回调
-            }
-        }
-        
         static void DFSNode(NodeType *start, NodeVisitHandler handler, void *context, bool *cyclic){
             
             stack<NodeType *> path;
@@ -144,12 +104,42 @@ namespace TFDataStruct{
                 if (handler) handler(next, true, context);  //访问开始回调
             }
         }
+        
+#define BFSSetLen(node, len) (node->visit = ((len)<<1)|1)
+#define BFSGetLen(node) ((node->visit)>>1)
+#define BFSIsVisited(node) (node->visit&1)
+        
+        //1. 返回最后一个节点 2.visit包含两部分：最后一位的0/1表示是否访问过，其他位表示距离起点的路径长度，即visit = (len<<1)|visitFlag;
+        static NodeType* BFSNode(NodeType *start, NodeVisitHandler handler, void *context){
+            
+            queue<NodeType *> visitQ;
+            visitQ.push(start);
+            BFSSetLen(start, 0);
+            
+            NodeType *front = nullptr;
+            while (!visitQ.empty()) {
+                front = visitQ.front();
+                visitQ.pop();
+                int len = BFSGetLen(front);
+                
+                for (auto &n : front->adjNodes){
+                    if (!BFSIsVisited(n)) {
+                        BFSSetLen(n, len+1);
+                        visitQ.push(n);
+                        
+                        if (handler) handler(n, true, context);
+                    }
+                }
+            }
+            
+            return front;
+        }
     
     public:
         vector<NodeType> allNodes;
         
-        //由邻接矩阵构建邻接表的图
-        static DirectedGraph<T> *createAdj(vector<T> &values, vector<vector<int>> &matrix){
+        //由邻接矩阵创建图
+        static DirectedGraph<T> *createWithMat(vector<T> &values, vector<vector<int>> &matrix){
             DirectedGraph<T> *graph = new DirectedGraph<T>();
             
             int size = (int)values.size();
@@ -163,6 +153,26 @@ namespace TFDataStruct{
                     if (matrix[i][j]) {
                         curNode.adjNodes.push_back(&graph->allNodes[j]);
                     }
+                }
+            }
+            
+            return graph;
+        }
+        
+        //由邻接表创建图
+        static DirectedGraph<T> *createWithEdges(vector<T> &values, vector<vector<int>> &edges){
+            DirectedGraph<T> *graph = new DirectedGraph<T>();
+            
+            int size = (int)values.size();
+            for (auto &v : values) {
+                graph->allNodes.push_back(NodeType(v));
+            }
+            
+            for (int i = 0; i<size; i++) {
+                NodeType &curNode = graph->allNodes[i];
+                auto &row = edges[i];
+                for (int &idx : row) {
+                    curNode.adjNodes.push_back(&graph->allNodes[idx]);
                 }
             }
             
@@ -203,24 +213,6 @@ namespace TFDataStruct{
         
         //是否有环
         bool isCyclic(){
-            unordered_map<NodeType *, int> visitState;
-            
-            stack<NodeType *> nodes;
-            bool cyclic = false;
-            
-            for (auto &n : allNodes){
-                if (!visitState[&n]) {
-                    DFSNode(&n, visitState, nullptr, nullptr, &cyclic);
-                    if (cyclic) {  //有环，没有拓扑排序
-                        return true;
-                    }
-                }
-            }
-            
-            return false;
-        }
-        
-        bool isCyclic2(){
             
             clearVisits();
             
@@ -237,6 +229,23 @@ namespace TFDataStruct{
             }
             
             return false;
+        }
+        
+        //TODO: 连通分量/ 只求个数
+        //TODO: 生成树
+        
+        static void longestNodeHandler(NodeType *node, bool start, void *context){
+            int len = node->visit>>1;
+            printf("(%d len: %d) ",node->val, len);
+        }
+        //最远的点
+        NodeType *longestNode(NodeType *start, int *length){
+            clearVisits();
+            auto last = BFSNode(start, longestNodeHandler, nullptr);
+            if (length) {
+                *length = BFSGetLen(last);
+            }
+            return last;
         }
         
         //遍历所有节点的一条路径,用拓扑排序
@@ -384,6 +393,156 @@ bool sequenceReconstruction(vector<int> &org, vector<vector<int>> &seqs) {
 //    
 //    return courses.traversalPath();
 //}
+
+#pragma mark - 使用最基本的图结构
+
+namespace TFDataStruct_graph2{
+    
+    //有向图节点
+    template <class T>
+    struct DirectedGraphNode {
+    public:
+        T val;
+        DirectedGraphNode(T val):val(val){};
+        //adjacent nodes
+        vector<DirectedGraphNode *> adjNodes;
+    };
+    
+    //无向图节点
+    template <class T>
+    struct UndirectedGraphNode {
+        T val;
+        UndirectedGraphNode(T val):val(val){};
+        //adjacent nodes
+        vector<UndirectedGraphNode *> adjNodes;
+    };
+    
+    //有向图
+    template <class T>
+    class DirectedGraph{
+        
+    public:
+        typedef DirectedGraphNode<T> NodeType;
+    private:
+        
+        typedef void(*NodeVisitHandler)(NodeType *node, bool start, void *context);
+        //以start节点为起点遍历所有可到达的节点，这些节点按遍历的顺序存入数组，然后返回
+        //visitIdx里存放的是节点下一个要访问的邻接节点的索引，初始为0;或说正在访问的节点索引+1.
+        static void DFSNode(NodeType *start, unordered_map<NodeType *, int> &visitIdx, NodeVisitHandler handler, void *context, bool *cyclic){
+            
+            stack<NodeType *> path;
+            path.push(start);
+            
+            while (!path.empty()) {
+                
+                NodeType *&cur = path.top();
+                
+                //从邻接节点里找一个白色
+                NodeType *next = nullptr;
+                int nextIdx = visitIdx[cur];
+                
+                while (nextIdx<cur->adjNodes.size()) {
+                    next = cur->adjNodes[nextIdx];
+                    if (visitIdx[next] == 0) { //未访问
+                        break;
+                    }
+                    
+                    nextIdx++;
+                    //正在访问中
+                    if (cyclic && visitIdx[next]<=next->adjNodes.size()) {
+                        *cyclic = true;
+                    }
+                }
+                visitIdx[cur] = nextIdx+1;
+                
+                if (nextIdx == cur->adjNodes.size()) { //没有未访问的节点了
+                    if (handler) handler(cur, false, context); //访问结束回调
+                    path.pop();
+                    continue;
+                }
+                
+                path.push(next);
+                if (handler) handler(next, true, context);  //访问开始回调
+            }
+        }
+        
+    public:
+        vector<NodeType> allNodes;
+        
+        //由邻接矩阵构建邻接表的图
+        static DirectedGraph<T> *createAdj(vector<T> &values, vector<vector<int>> &matrix){
+            DirectedGraph<T> *graph = new DirectedGraph<T>();
+            
+            int size = (int)values.size();
+            for (auto &v : values) {
+                graph->allNodes.push_back(NodeType(v));
+            }
+            
+            for (int i = 0; i<size; i++) {
+                NodeType &curNode = graph->allNodes[i];
+                for (int j = 0; j<size; j++) {
+                    if (matrix[i][j]) {
+                        curNode.adjNodes.push_back(&graph->allNodes[j]);
+                    }
+                }
+            }
+            
+            return graph;
+        }
+        
+        static inline void topSortDFSHandler(NodeType *node, bool start, void *context){
+            if (!start) {
+                stack<NodeType *> *nodes = (stack<NodeType *> *)context;
+                nodes->push(node);
+            }
+        }
+        
+        //拓扑排序
+        vector<NodeType *> topSort(){
+            
+            unordered_map<NodeType *, int> visitState;
+            
+            stack<NodeType *> nodes;
+            bool cyclic = false;
+            for (auto &n : allNodes){
+                if (!visitState[&n]) {
+                    DFSNode(&n, visitState, topSortDFSHandler, &nodes, &cyclic);
+                    if (cyclic) {  //有环，没有拓扑排序
+                        return {};
+                    }
+                }
+            }
+            
+            vector<NodeType *> result;
+            while (!nodes.empty()) {
+                result.push_back(nodes.top());
+                nodes.pop();
+            }
+            
+            return result;
+        }
+        
+        //是否有环
+        bool isCyclic(){
+            unordered_map<NodeType *, int> visitState;
+            
+            stack<NodeType *> nodes;
+            bool cyclic = false;
+            
+            for (auto &n : allNodes){
+                if (!visitState[&n]) {
+                    DFSNode(&n, visitState, nullptr, nullptr, &cyclic);
+                    if (cyclic) {  //有环，没有拓扑排序
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        }
+    };
+}
+
 
 
 #endif /* Graph_hpp */

@@ -787,7 +787,7 @@ bool canFinish(int numCourses, vector<pair<int, int>>& prerequisites) {
     for (auto &pair : prerequisites){
         graph->allNodes[pair.first].adjNodes.push_back(&graph->allNodes[pair.second]);
     }
-    return !graph->isCyclic2();
+    return !graph->isCyclic();
 }
 
 #define LRUCache(c) LRUCache cache(c);
@@ -795,11 +795,24 @@ int main(int argc, const char * argv[]) {
     
     uint64_t start = mach_absolute_time();
     
+    int size = 5;
+    vector<int> values(size,0);
+    for (int i = 0; i<size; i++) {
+        values[i] = i;
+    }
+    vector<vector<int>> edges = {
+        {1,2},
+        {2,3},
+        {3},
+        {4},
+        {0,2},
+    };
     
-    vector<pair<int, int>> require = {{5,8},{3,5},{1,9},{4,5},{0,2},{1,9},{7,8},{4,9}};
-    auto result = canFinish(10, require);
-    printf("%s\n",result?"YES":"NO");
+    auto graph = TFDataStruct::DirectedGraph<int>::createWithEdges(values, edges);
+    int len = 0;
+    auto result = graph->longestNode(&graph->allNodes[0], &len);
     
+    printf("longest node: %d, length: %d\n",result->val,len);
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

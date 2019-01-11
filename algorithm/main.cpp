@@ -790,31 +790,173 @@ bool canFinish(int numCourses, vector<pair<int, int>>& prerequisites) {
     return !graph->isCyclic();
 }
 
+class Connection {
+    public:
+    string city1, city2;
+    int cost;
+//    Connection(string& city1, string& city2, int cost) {
+//        this->city1 = city1;
+//        this->city2 = city2;
+//        this->cost = cost;
+//    }
+};
+
+bool connectComp(Connection &con1, Connection &con2){
+    int result = con1.cost-con2.cost;
+    if (result<0) {
+        return true;
+    }else if (result>0){
+        return false;
+    }
+
+    result = con1.city1.compare(con2.city1);
+    if (result<0) {
+        return true;
+    }else if (result>0){
+        return false;
+    }
+
+    result = con1.city2.compare(con2.city2);
+    return result<=0;
+}
+
+vector<Connection> lowestCost(vector<Connection>& connections) {
+    typedef TFDataStruct::UndirectedGraph<string> GraphType;
+    GraphType graph;
+    
+    map<string, int> cityIdx;
+    for (auto &con : connections){
+        
+        
+        int edgeIdx1 = -1;
+        if (cityIdx.find(con.city1) == cityIdx.end()) {
+            graph.allNodes.push_back(GraphType::NodeType(con.city1));
+            edgeIdx1 = cityIdx[con.city1] = (int)graph.allNodes.size()-1;
+        }else{
+            edgeIdx1 = cityIdx[con.city1];
+        }
+        
+        int edgeIdx2 = -1;
+        if (cityIdx.find(con.city2) == cityIdx.end()) {
+            graph.allNodes.push_back(GraphType::NodeType(con.city2));
+            edgeIdx2 = cityIdx[con.city2] = (int)graph.allNodes.size()-1;
+        }else{
+            edgeIdx2 = cityIdx[con.city2];
+        }
+        
+        
+        graph.allNodes[edgeIdx1].edges.push_back({edgeIdx2, con.cost});
+        graph.allNodes[edgeIdx2].edges.push_back({edgeIdx1, con.cost});
+    }
+    
+    //默认第一个节点为根，根没有前置节点，不处理
+    auto closest = graph.lowestCost_prim();
+    vector<Connection> result;
+    for (int i = 1; i<closest.size(); i++){
+        auto &edge = closest[i];
+
+        string &val1 = graph.allNodes[i].val;
+        string &val2 = graph.allNodes[edge.other].val;
+        bool inc = val1.compare(val2)<0;
+        string minSide = min(val1, val2);
+        string maxSide = max(val1, val2);
+        result.push_back({inc?val1:val2, inc?val2:val1, edge.cost});
+    }
+    
+    sort(result.begin(), result.end(), connectComp);
+    
+    return result;
+}
+
+vector<Connection> lowestCost_mat(vector<Connection>& connections) {
+    typedef TFDataStruct::UndirectedGraph<string> GraphType;
+    GraphType graph;
+    graph.initMatrix((int)connections.size());
+    
+    map<string, int> cityIdx;
+    for (auto &con : connections){
+        int edgeIdx1 = -1;
+        if (cityIdx.find(con.city1) == cityIdx.end()) {
+            graph.allNodes.push_back(GraphType::NodeType(con.city1));
+            edgeIdx1 = cityIdx[con.city1] = (int)graph.allNodes.size()-1;
+        }else{
+            edgeIdx1 = cityIdx[con.city1];
+        }
+        
+        int edgeIdx2 = -1;
+        if (cityIdx.find(con.city2) == cityIdx.end()) {
+            graph.allNodes.push_back(GraphType::NodeType(con.city2));
+            edgeIdx2 = cityIdx[con.city2] = (int)graph.allNodes.size()-1;
+        }else{
+            edgeIdx2 = cityIdx[con.city2];
+        }
+        
+        graph.matrix[edgeIdx1][edgeIdx2] = con.cost;
+        graph.matrix[edgeIdx2][edgeIdx1] = con.cost;
+    }
+    
+    auto edges = graph.lowestCost_kruskal();
+    vector<Connection> result;
+    for (auto &edge : edges) {
+        
+        string &val1 = graph.allNodes[edge.first].val;
+        string &val2 = graph.allNodes[edge.second].val;
+        bool inc = val1.compare(val2)<0;
+        string minSide = min(val1, val2);
+        string maxSide = max(val1, val2);
+        result.push_back({inc?val1:val2, inc?val2:val1, edge.cost});
+    }
+    
+    sort(result.begin(), result.end(), connectComp);
+    
+    return result;
+}
+
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
     
     uint64_t start = mach_absolute_time();
     
-    int size = 5;
-    vector<int> values(size,0);
-    for (int i = 0; i<size; i++) {
-        values[i] = i;
-    }
-    vector<vector<int>> edges = {
-        {2},
-        {2,3},
-        {3},
-        {4},
-        {0,2},
-    };
     
-    auto graph = TFDataStruct::DirectedGraph<int>::createWithEdges(values, edges);
-    auto result = graph->shortestPath(&graph->allNodes[4], &graph->allNodes[1]);
+    vector<Connection> connections;
     
-    for (auto &n : result){
-        printf("%d-> ",n->val);
+    string path = "/Users/apple/Desktop/connections_data";
+    readFile(path, [&connections](string &line){
+        
+        Connection con;
+        int last = 1, idx = 0;
+        for (int i = 0; i< line.size(); i++){
+            char c = line[i];
+            if (c == ',' || c == ']') {
+                if (idx == 0) {
+                    con.city1 = line.substr(last+1, i-last-2);
+                }else if (idx == 1){
+                    con.city2 = line.substr(last+1, i-last-2);
+                }else{
+                    int num = 0, digit = 1;
+                    for (int k = i-1; k>=last; k--) {
+                        num += (line[k]-'0')*digit;
+                        digit *= 10;
+                    }
+                    con.cost = num;
+                }
+                
+                idx++;
+                last = i+1;
+            }
+        }
+        
+        connections.push_back(con);
+    });
+    
+//    for (auto &con : connections){
+//        cout<<con.city1<<","<<con.city2<<","<<con.cost<<endl;
+//    }
+    
+    auto result = lowestCost(connections);
+    for (auto &con : result){
+        cout<<con.city1<<","<<con.city2<<","<<con.cost<<endl;
     }
-    printf("\n");
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

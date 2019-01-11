@@ -7,6 +7,18 @@
 
 //所有和图算法相关的题目
 
+//1. 邻接点使用所用索引的好处是，所有遍历相关的参数可以使用索引来定位，而不用map,起点也使用索引。用索引定位就可以用数组来标记，而图的大小是固定的，所以数组大小固定，省去伸缩的消耗
+
+/*
+ 经典问题：
+ 1. 连通分量/只求个数/是否联通
+ 2. 生成树
+ 3. 最短路径/最远的点
+ 4. 是否有环/包含特定点的环路
+ 5. 拓扑排序
+ 
+ */
+
 #ifndef Graph_hpp
 #define Graph_hpp
 
@@ -28,16 +40,6 @@ namespace TFDataStruct{
         DirectedGraphNode(T val):val(val){};
         //adjacent nodes
         vector<DirectedGraphNode *> adjNodes;
-        int visit = 0;
-    };
-    
-    //无向图节点
-    template <class T>
-    struct UndirectedGraphNode {
-        T val;
-        UndirectedGraphNode(T val):val(val){};
-        //adjacent nodes
-        vector<UndirectedGraphNode *> adjNodes;
         int visit = 0;
     };
     
@@ -68,6 +70,7 @@ namespace TFDataStruct{
         typedef bool(*NodeVisitHandler2)(NodeType *pre,NodeType *cur, void *context);
         //以start节点为起点遍历所有可到达的节点，这些节点按遍历的顺序存入数组，然后返回
         //visitIdx里存放的是节点下一个要访问的邻接节点的索引，初始为0;或说正在访问的节点索引+1.
+        //visit==0：未访问；visit 属于[1, adjNodes.size()]：正在访问； visit>adjNodes.size(),已经访问结束。也就是visit和“白、灰、黑”的状态标记合并了
         static void DFSNode(NodeType *start, NodeVisitHandler handler, void *context, bool *cyclic){
             
             stack<NodeType *> path;
@@ -195,13 +198,13 @@ namespace TFDataStruct{
         //拓扑排序
         vector<NodeType *> topSort(){
             
-            unordered_map<NodeType *, int> visitState;
+            clearVisits();
 
             stack<NodeType *> nodes;
             bool cyclic = false;
             for (auto &n : allNodes){
-                if (!visitState[&n]) {
-                    DFSNode(&n, visitState, topSortDFSHandler, &nodes, &cyclic);
+                if (n.visit == 0) {
+                    DFSNode(&n, topSortDFSHandler, &nodes, &cyclic);
                     if (cyclic) {  //有环，没有拓扑排序
                         return {};
                     }
@@ -221,8 +224,6 @@ namespace TFDataStruct{
         bool isCyclic(){
             
             clearVisits();
-            
-            stack<NodeType *> nodes;
             bool cyclic = false;
             
             for (auto &n : allNodes){
@@ -237,9 +238,24 @@ namespace TFDataStruct{
             return false;
         }
         
-        //TODO: 连通分量/ 只求个数
-        //TODO: 生成树
-        //TODO: 最短路径
+        static inline void isConnectedHandler(NodeType *node, void *context){
+            int *count = (int*)context;
+            *count = *count+1; //记录访问点的数量
+        }
+
+        
+        //这个算法只适用于无向图
+//        bool isConnected(){
+//            clearVisits();
+//
+//            //任取一点，如果遍历完全部点，代表连通
+//            int count = 0;
+//            DFSNode(&allNodes.front(), isConnectedHandler, &count, nullptr);
+//
+//            return count==allNodes.size();
+//        }
+        
+
         
         static inline bool longestNodeHandler(NodeType *pre, NodeType *cur, void *context){
             int len = cur->visit>>1;
@@ -451,15 +467,6 @@ namespace TFDataStruct_graph2{
         vector<DirectedGraphNode *> adjNodes;
     };
     
-    //无向图节点
-    template <class T>
-    struct UndirectedGraphNode {
-        T val;
-        UndirectedGraphNode(T val):val(val){};
-        //adjacent nodes
-        vector<UndirectedGraphNode *> adjNodes;
-    };
-    
     //有向图
     template <class T>
     class DirectedGraph{
@@ -586,6 +593,172 @@ namespace TFDataStruct_graph2{
     };
 }
 
+
+#pragma mark - 无向图,邻接表/矩阵+索引类型,带权
+
+namespace TFDataStruct{
+    
+    //已知起点，只记录权和另一点
+    struct UndirectedGraphEdge1 {
+        int other;
+        int cost;
+    };
+    
+    //包含两端和权
+    struct UndirectedGraphEdge2 {
+        int first;
+        int second;
+        int cost;
+        
+        bool operator<(const UndirectedGraphEdge2 &other) const{
+            return this->cost<other.cost;
+        }
+    };
+    
+    //无向图节点
+    template <class T>
+    struct UndirectedGraphNode {
+        T val;
+        UndirectedGraphNode(T val):val(val){};
+        //adjacent nodes
+        vector<UndirectedGraphEdge1> edges;
+    };
+    
+    static const int UndirectedGraphInfinity = INFINITY;
+    
+    template<class T>
+    class UndirectedGraph {
+    public:
+        typedef UndirectedGraphNode<T> NodeType;
+        
+    private:
+        //默认为空，调用genEdges，从邻接矩阵里获取所有边
+        void genEdges(vector<UndirectedGraphEdge2> &allEdges){
+            
+            int size = (int)matrix.size();
+            //维持i<j，避免重复计算
+            for (int i = 0; i<size; i++) {
+                for (int j = i+1; j<size; j++) {
+                    if (matrix[i][j] != UndirectedGraphInfinity) {
+                        allEdges.push_back({i, j, matrix[i][j]});
+                    }
+                }
+            }
+        }
+        
+    public:
+        //所有顶点
+        vector<NodeType> allNodes;
+        
+        //邻接矩阵(无穷大表示无边，其他代表权值)
+        vector<vector<int>> matrix;
+        void initMatrix(int size){
+            for (int i = 0; i<size; i++) {
+                matrix.push_back(vector<int>(size, 0));
+                for (int j = 0; j<size; j++) {
+                    matrix[i][j] = UndirectedGraphInfinity;
+                }
+            }
+        }
+        /*
+         因为生成树包含所有顶点，所以顶点数据不需要记录，只需要记录边；然后除了根，每个顶点都对应一个边，所以可以使用数组记录,假设数组为A，则(A[i]--i)表示生成树的一条边。
+         如果是用邻接矩阵表示的，则不需要输出边的权值，因为可以通过矩阵数组很快的(O(1))求得。
+         */
+        
+        //prim算法求最小生成树
+        vector<UndirectedGraphEdge1> lowestCost_prim(int root = 0){
+            int size = (int)allNodes.size();
+
+            //0:代表已处理，忽略；[1, int_max)，正在候选；int_max 没有访问到，暂不处理
+            int distance[size];
+            for (int i = 0; i<size; i++) {
+                distance[i] = INT_MAX;
+            }
+            
+            int processedCount = 1;
+            vector<UndirectedGraphEdge1> closest(size,{0,0});
+            
+            NodeType *cur = &allNodes[root];
+            int curIdx = root;
+            distance[root] = 0;
+            
+            while (1) {
+                //更新未处理点的距离
+                for (auto &edge : cur->edges){
+                    int dis = distance[edge.other];
+                    if (edge.cost < dis) {
+                        distance[edge.other] = edge.cost;
+                        closest[edge.other] = {curIdx, edge.cost};
+                    }
+                }
+                
+                int next = -1, minCost = INT_MAX;
+                for (int i = 0; i<size; i++) {
+                    int dis = distance[i];
+                    if (dis!=0 && dis!=INT_MAX) {
+                        if (dis < minCost) {
+                            minCost = dis;
+                            next = i;
+                        }
+                    }
+                }
+                
+                if (next<0) {
+                    break;
+                }
+                
+//                cout<<"in ("<<allNodes[closest[next].other].val<<", "<<allNodes[next].val<<") "<<endl;
+                
+                //找到下一个点
+                cur = &allNodes[next];
+                curIdx = next;
+                distance[next] = 0;
+                processedCount++;
+            }
+            
+            if (processedCount < size) { //不连通，无法构造生成树
+                return {};
+            }
+            return closest;
+        }
+        
+        vector<UndirectedGraphEdge2> lowestCost_kruskal(int root = 0){
+            
+            vector<UndirectedGraphEdge2> allEdges;
+            genEdges(allEdges);
+            
+            sort(allEdges.begin(), allEdges.end());
+            
+            int size = (int)allNodes.size();
+            int connectIdx[size];
+            for (int i = 0; i<size; i++) {
+                connectIdx[i] = i;
+            }
+            
+            vector<UndirectedGraphEdge2> result;
+            
+            for (auto &edge : allEdges) {
+                
+                if (connectIdx[edge.first] == connectIdx[edge.second]) {
+                    continue;
+                }
+                
+                for (int i = 0; i<size; i++) {
+                    if (connectIdx[i] == connectIdx[edge.second]) {
+                        connectIdx[i] = connectIdx[edge.first];
+                    }
+                }
+                
+                result.push_back(edge);
+                if (result.size() == size-1) {
+                    break;
+                }
+            }
+            
+            return result;
+        }
+    };
+}
 
 
 #endif /* Graph_hpp */

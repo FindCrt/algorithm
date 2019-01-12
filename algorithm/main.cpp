@@ -14,6 +14,7 @@
 #include <stack>
 #include <queue>
 #include <list>
+#include <set>
 #include <unordered_map>
 #include <iostream>
 #include "heap.hpp"
@@ -777,7 +778,7 @@ public:
 
 bool canFinish(int numCourses, vector<pair<int, int>>& prerequisites) {
     
-    typedef TFDataStruct::DirectedGraph<int> GraphType;
+    typedef TFDataStruct::MyDirectedGraph<int> GraphType;
     GraphType *graph = new GraphType();
     
     for (int i = 0; i<numCourses; i++) {
@@ -801,6 +802,7 @@ class Connection {
 //    }
 };
 
+//先cost，再city1，再city2
 bool connectComp(Connection &con1, Connection &con2){
     int result = con1.cost-con2.cost;
     if (result<0) {
@@ -817,7 +819,7 @@ bool connectComp(Connection &con1, Connection &con2){
     }
 
     result = con1.city2.compare(con2.city2);
-    return result<=0;
+    return result<0;
 }
 
 vector<Connection> lowestCost(vector<Connection>& connections) {
@@ -868,43 +870,47 @@ vector<Connection> lowestCost(vector<Connection>& connections) {
     return result;
 }
 
+//629. 最小生成树
+//1. 边的选择要排序， 内部用索引排序，所以外部先按照city的排序规则把city排序
 vector<Connection> lowestCost_mat(vector<Connection>& connections) {
-    typedef TFDataStruct::UndirectedGraph<string> GraphType;
+    typedef TFDataStruct::DirectedGraph<string> GraphType;
     GraphType graph;
-    graph.initMatrix((int)connections.size());
     
+    //使用map来做去重，同时也为了后面让city和索引建立映射
     map<string, int> cityIdx;
     for (auto &con : connections){
-        int edgeIdx1 = -1;
         if (cityIdx.find(con.city1) == cityIdx.end()) {
-            graph.allNodes.push_back(GraphType::NodeType(con.city1));
-            edgeIdx1 = cityIdx[con.city1] = (int)graph.allNodes.size()-1;
-        }else{
-            edgeIdx1 = cityIdx[con.city1];
+            cityIdx[con.city1] = 1;
         }
-        
-        int edgeIdx2 = -1;
         if (cityIdx.find(con.city2) == cityIdx.end()) {
-            graph.allNodes.push_back(GraphType::NodeType(con.city2));
-            edgeIdx2 = cityIdx[con.city2] = (int)graph.allNodes.size()-1;
-        }else{
-            edgeIdx2 = cityIdx[con.city2];
+            cityIdx[con.city2] = 1;
         }
-        
-        graph.matrix[edgeIdx1][edgeIdx2] = con.cost;
-        graph.matrix[edgeIdx2][edgeIdx1] = con.cost;
     }
     
-    auto edges = graph.lowestCost_kruskal();
+    //使用邻接矩阵保存
+    graph.initMatrix((int)cityIdx.size());
+    
+    int index = 0;
+    for (auto &pair : cityIdx) {
+        graph.allNodes.push_back(GraphType::NodeType(pair.first));
+        pair.second = index;
+        index++;
+    }
+    
+    for (auto &con : connections){
+        int edgeIdx1 = cityIdx[con.city1];
+        int edgeIdx2 = cityIdx[con.city2];
+        
+        graph.matrix[edgeIdx1][edgeIdx2] = min(con.cost, graph.matrix[edgeIdx1][edgeIdx2]);
+    }
+    
+    auto edges = graph.lowestTree_kruskal();
     vector<Connection> result;
     for (auto &edge : edges) {
         
         string &val1 = graph.allNodes[edge.first].val;
         string &val2 = graph.allNodes[edge.second].val;
-        bool inc = val1.compare(val2)<0;
-        string minSide = min(val1, val2);
-        string maxSide = max(val1, val2);
-        result.push_back({inc?val1:val2, inc?val2:val1, edge.cost});
+        result.push_back({val1, val2, edge.cost});
     }
     
     sort(result.begin(), result.end(), connectComp);
@@ -912,11 +918,23 @@ vector<Connection> lowestCost_mat(vector<Connection>& connections) {
     return result;
 }
 
+bool textComp(string &str1, string &str2){
+    int result = str1.compare(str2);
+    if (result<=0) {
+        return true;
+    }else{
+        return false;
+    }
+}
+
+bool numsComp(int &n1, int &n2){
+    return n1<=n2;
+}
+
 #define LRUCache(c) LRUCache cache(c);
 int main(int argc, const char * argv[]) {
     
     uint64_t start = mach_absolute_time();
-    
     
     vector<Connection> connections;
     
@@ -949,14 +967,15 @@ int main(int argc, const char * argv[]) {
         connections.push_back(con);
     });
     
+//    sort(connections.begin(), connections.end(), connectComp);
 //    for (auto &con : connections){
-//        cout<<con.city1<<","<<con.city2<<","<<con.cost<<endl;
+//        cout<<"[\""<<con.city1<<"\",\""<<con.city2<<"\","<<con.cost<<"]"<<endl;
 //    }
     
-    auto result = lowestCost(connections);
-    for (auto &con : result){
-        cout<<con.city1<<","<<con.city2<<","<<con.cost<<endl;
-    }
+    auto result = lowestCost_mat(connections);
+//    for (auto &con : result){
+//        cout<<"[\""<<con.city1<<"\",\""<<con.city2<<"\","<<con.cost<<"]"<<endl;
+//    }
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

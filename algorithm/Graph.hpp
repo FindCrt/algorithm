@@ -28,27 +28,71 @@
 
 using namespace std;
 
-#pragma mark - 图节点加入了自定义的变量
+#pragma mark - 通用结构
+
+namespace TFDataStruct{
+    //已知起点，只记录权和另一点
+    struct GraphEdge1 {
+        int other;
+        int cost;
+    };
+    static long long count = 0;
+    //包含两端和权
+    struct GraphEdge2 {
+        int first;
+        int second;
+        int cost;
+        
+        
+        bool operator<(const GraphEdge2 &other) const{
+            count++;
+            if(count % 100000 == 0) {
+                printf("%lld \n",count);
+            }
+//            return this->cost<other.cost;
+            int result = this->cost-other.cost;
+            if(result != 0) return result<0;
+
+            result = this->first-other.first;
+            if(result != 0) return result<0;
+
+            result = this->second-other.second;
+            return result<0;
+        }
+    };
+    
+    template <class T>
+    struct GraphNode {
+        T val;
+        GraphNode(T val):val(val){};
+        //adjacent nodes
+        vector<GraphEdge1> edges;
+    };
+    
+    static const int GraphInfinity = INT_MAX;
+}
+
+#pragma mark - 有向图、邻接数组、自定义节点结构
 
 namespace TFDataStruct{
     
     //有向图节点
     template <class T>
-    struct DirectedGraphNode {
+    struct MyDirectedGraphNode {
     public:
         T val;
-        DirectedGraphNode(T val):val(val){};
+        MyDirectedGraphNode(T val):val(val){};
         //adjacent nodes
-        vector<DirectedGraphNode *> adjNodes;
+        vector<MyDirectedGraphNode *> adjNodes;
         int visit = 0;
     };
     
     //有向图
     template <class T>
-    class DirectedGraph{
+    class MyDirectedGraph{
         
     public:
-        typedef DirectedGraphNode<T> NodeType;
+        typedef MyDirectedGraphNode<T> NodeType;
     private:
         
         void clearVisits(){
@@ -57,7 +101,7 @@ namespace TFDataStruct{
             }
         }
         
-        vector<DirectedGraphNode<T> *> starts;
+        vector<NodeType *> starts;
         inline void checkStarts(){
             for (int i = 0; i<allNodes.size(); i++){
                 if (allNodes[i].fromCount == 0) {
@@ -143,13 +187,13 @@ namespace TFDataStruct{
             
             return front;
         }
-    
+        
     public:
         vector<NodeType> allNodes;
         
         //由邻接矩阵创建图
-        static DirectedGraph<T> *createWithMat(vector<T> &values, vector<vector<int>> &matrix){
-            DirectedGraph<T> *graph = new DirectedGraph<T>();
+        static MyDirectedGraph<T> *createWithMat(vector<T> &values, vector<vector<int>> &matrix){
+            MyDirectedGraph<T> *graph = new MyDirectedGraph<T>();
             
             int size = (int)values.size();
             for (auto &v : values) {
@@ -169,8 +213,8 @@ namespace TFDataStruct{
         }
         
         //由邻接表创建图
-        static DirectedGraph<T> *createWithEdges(vector<T> &values, vector<vector<int>> &edges){
-            DirectedGraph<T> *graph = new DirectedGraph<T>();
+        static MyDirectedGraph<T> *createWithEdges(vector<T> &values, vector<vector<int>> &edges){
+            MyDirectedGraph<T> *graph = new MyDirectedGraph<T>();
             
             int size = (int)values.size();
             for (auto &v : values) {
@@ -199,7 +243,7 @@ namespace TFDataStruct{
         vector<NodeType *> topSort(){
             
             clearVisits();
-
+            
             stack<NodeType *> nodes;
             bool cyclic = false;
             for (auto &n : allNodes){
@@ -242,20 +286,20 @@ namespace TFDataStruct{
             int *count = (int*)context;
             *count = *count+1; //记录访问点的数量
         }
-
+        
         
         //这个算法只适用于无向图
-//        bool isConnected(){
-//            clearVisits();
-//
-//            //任取一点，如果遍历完全部点，代表连通
-//            int count = 0;
-//            DFSNode(&allNodes.front(), isConnectedHandler, &count, nullptr);
-//
-//            return count==allNodes.size();
-//        }
+        //        bool isConnected(){
+        //            clearVisits();
+        //
+        //            //任取一点，如果遍历完全部点，代表连通
+        //            int count = 0;
+        //            DFSNode(&allNodes.front(), isConnectedHandler, &count, nullptr);
+        //
+        //            return count==allNodes.size();
+        //        }
         
-
+        
         
         static inline bool longestNodeHandler(NodeType *pre, NodeType *cur, void *context){
             int len = cur->visit>>1;
@@ -321,8 +365,8 @@ namespace TFDataStruct{
             }
             clearVisits();
             
-            vector<DirectedGraphNode<T> *> path;
-            vector<DirectedGraphNode<T> *> curSatrts = starts;
+            vector<NodeType *> path;
+            vector<NodeType *> curSatrts = starts;
             //找出当前的起点，它一定是当前图最前面那个，然后把它放到最前面，再删掉它，形成新图再重复前面的操作。
             //实际操作时，只需要控制fromCount,维持一个fromCount为0的数组。
             while (!curSatrts.empty()) {
@@ -355,9 +399,9 @@ namespace TFDataStruct{
 }
 
 //bool canFinish(int numCourses, vector<pair<int, int>>& prerequisites) {
-//    TFDataStruct::DirectedGraph<int> courses;
+//    TFDataStruct::MyDirectedGraph<int> courses;
 //    for (int i = 0; i<numCourses; i++) {
-//        courses.allNodes.push_back(TFDataStruct::DirectedGraphNode<int>(i));
+//        courses.allNodes.push_back(TFDataStruct::MyDirectedGraphNode<int>(i));
 //    }
 //
 //    for (auto &pair : prerequisites){
@@ -440,103 +484,125 @@ bool sequenceReconstruction(vector<int> &org, vector<vector<int>> &seqs) {
 }
 
 //vector<int> findOrder(int numCourses, vector<pair<int, int>> &prerequisites) {
-//    TFDataStruct::DirectedGraph<int> courses;
+//    TFDataStruct::MyDirectedGraph<int> courses;
 //    for (int i = 0; i<numCourses; i++) {
-//        courses.allNodes.push_back(TFDataStruct::DirectedGraphNode<int>(i));
+//        courses.allNodes.push_back(TFDataStruct::MyDirectedGraphNode<int>(i));
 //    }
 //
 //    for (auto &pair : prerequisites){
 //        courses.allNodes[pair.second].adjNodes.push_back(&courses.allNodes[pair.first]);
 //        courses.allNodes[pair.first].fromCount++;
 //    }
-//    
+//
 //    return courses.traversalPath();
 //}
 
-#pragma mark - 使用最基本的图结构
+#pragma mark - 有向图、基本结构、索引表示邻接点,带权
 
-namespace TFDataStruct_graph2{
-    
-    //有向图节点
-    template <class T>
-    struct DirectedGraphNode {
-    public:
-        T val;
-        DirectedGraphNode(T val):val(val){};
-        //adjacent nodes
-        vector<DirectedGraphNode *> adjNodes;
-    };
+namespace TFDataStruct{
     
     //有向图
     template <class T>
     class DirectedGraph{
         
     public:
-        typedef DirectedGraphNode<T> NodeType;
+        typedef GraphNode<T> NodeType;
     private:
+        
+        //有向图和无向图在这个函数上有区别，在于无向图需要避免重复
+        void genEdges(vector<GraphEdge2> &allEdges){
+            
+            int size = (int)matrix.size();
+            for (int i = 0; i<size; i++) {
+                for (int j = 0; j<size; j++) {
+                    if (matrix[i][j] != GraphInfinity) {
+                        allEdges.push_back({i, j, matrix[i][j]});
+                    }
+                }
+            }
+        }
         
         typedef void(*NodeVisitHandler)(NodeType *node, bool start, void *context);
         //以start节点为起点遍历所有可到达的节点，这些节点按遍历的顺序存入数组，然后返回
         //visitIdx里存放的是节点下一个要访问的邻接节点的索引，初始为0;或说正在访问的节点索引+1.
-        static void DFSNode(NodeType *start, unordered_map<NodeType *, int> &visitIdx, NodeVisitHandler handler, void *context, bool *cyclic){
+        void DFSNode(int start, int *visitIdx, NodeVisitHandler handler, void *context, bool *cyclic){
             
-            stack<NodeType *> path;
+            stack<int> path;
             path.push(start);
             
             while (!path.empty()) {
                 
-                NodeType *&cur = path.top();
+                int curIdx = path.top();
+                NodeType *cur = &allNodes[curIdx];
                 
                 //从邻接节点里找一个白色
-                NodeType *next = nullptr;
-                int nextIdx = visitIdx[cur];
+                int edgeIdx = visitIdx[curIdx]; //下一个边的索引
+                int next = -1;  //下一个边的另一个节点的索引
                 
-                while (nextIdx<cur->adjNodes.size()) {
-                    next = cur->adjNodes[nextIdx];
+                while (edgeIdx<cur->edges.size()) {
+                    next = cur->edges[edgeIdx].other;
                     if (visitIdx[next] == 0) { //未访问
                         break;
                     }
                     
-                    nextIdx++;
+                    edgeIdx++;
                     //正在访问中
-                    if (cyclic && visitIdx[next]<=next->adjNodes.size()) {
+                    if (cyclic && visitIdx[next]<=allNodes[next].edges.size()) {
                         *cyclic = true;
                     }
                 }
-                visitIdx[cur] = nextIdx+1;
                 
-                if (nextIdx == cur->adjNodes.size()) { //没有未访问的节点了
+                visitIdx[curIdx] = edgeIdx+1;
+                
+                if (edgeIdx == cur->edges.size()) { //没有未访问的节点了
                     if (handler) handler(cur, false, context); //访问结束回调
                     path.pop();
                     continue;
                 }
                 
                 path.push(next);
-                if (handler) handler(next, true, context);  //访问开始回调
+                if (handler) handler(&allNodes[next], true, context);  //访问开始回调
             }
         }
         
     public:
         vector<NodeType> allNodes;
         
+        //邻接矩阵(无穷大表示无边，其他代表权值)
+        vector<vector<int>> matrix;
+        void initMatrix(int size){
+            for (int i = 0; i<size; i++) {
+                matrix.push_back(vector<int>(size, 0));
+                for (int j = 0; j<size; j++) {
+                    matrix[i][j] = GraphInfinity;
+                }
+            }
+        }
+        
+        //由邻接矩阵生成邻接表
+        void genAdj(){
+            int size = (int)matrix.size();
+            
+            for (int i = 0; i<size; i++) {
+                NodeType &curNode = allNodes[i];
+                for (int j = 0; j<size; j++) {
+                    if (matrix[i][j] != GraphInfinity) {
+                        curNode.edges.push_back({j, matrix[i][j]});
+                    }
+                }
+            }
+        }
+        
         //由邻接矩阵构建邻接表的图
         static DirectedGraph<T> *createAdj(vector<T> &values, vector<vector<int>> &matrix){
             DirectedGraph<T> *graph = new DirectedGraph<T>();
-            
-            int size = (int)values.size();
             for (auto &v : values) {
                 graph->allNodes.push_back(NodeType(v));
             }
             
-            for (int i = 0; i<size; i++) {
-                NodeType &curNode = graph->allNodes[i];
-                for (int j = 0; j<size; j++) {
-                    if (matrix[i][j]) {
-                        curNode.adjNodes.push_back(&graph->allNodes[j]);
-                    }
-                }
-            }
-            
+            graph->matrix = matrix;
+            graph->genAdj();
+
             return graph;
         }
         
@@ -550,13 +616,15 @@ namespace TFDataStruct_graph2{
         //拓扑排序
         vector<NodeType *> topSort(){
             
-            unordered_map<NodeType *, int> visitState;
+            int size = (int)allNodes.size();
+            int visitIdx[size];
+            memset(visitIdx, 0, sizeof(visitIdx));
             
             stack<NodeType *> nodes;
             bool cyclic = false;
-            for (auto &n : allNodes){
-                if (!visitState[&n]) {
-                    DFSNode(&n, visitState, topSortDFSHandler, &nodes, &cyclic);
+            for (int i = 0; i<size; i++){
+                if (!visitIdx[i]) {
+                    DFSNode(i, visitIdx, topSortDFSHandler, &nodes, &cyclic);
                     if (cyclic) {  //有环，没有拓扑排序
                         return {};
                     }
@@ -574,14 +642,16 @@ namespace TFDataStruct_graph2{
         
         //是否有环
         bool isCyclic(){
-            unordered_map<NodeType *, int> visitState;
+            int size = (int)allNodes.size();
+            int visitIdx[size];
+            memset(visitIdx, 0, sizeof(visitIdx));
             
             stack<NodeType *> nodes;
             bool cyclic = false;
             
-            for (auto &n : allNodes){
-                if (!visitState[&n]) {
-                    DFSNode(&n, visitState, nullptr, nullptr, &cyclic);
+            for (int i = 0; i<size; i++){
+                if (!visitIdx[i]) {
+                    DFSNode(i, visitIdx, nullptr, nullptr, &cyclic);
                     if (cyclic) {  //有环，没有拓扑排序
                         return true;
                     }
@@ -590,56 +660,74 @@ namespace TFDataStruct_graph2{
             
             return false;
         }
+        
+        vector<GraphEdge2> lowestTree_kruskal(){
+            
+            vector<GraphEdge2> allEdges;
+            genEdges(allEdges);
+            
+            sort(allEdges.begin(), allEdges.end());
+            
+            int size = (int)allNodes.size();
+            int connectIdx[size];
+            for (int i = 0; i<size; i++) {
+                connectIdx[i] = i;
+            }
+            
+            vector<GraphEdge2> result;
+            
+            for (auto &edge : allEdges) {
+                
+//                printf("(%d->%d)[%d, %d][%s, %s] ",edge.first,edge.second,connectIdx[edge.first], connectIdx[edge.second], allNodes[edge.first].val.c_str(),allNodes[edge.second].val.c_str());
+                if (connectIdx[edge.first] == connectIdx[edge.second]) {
+//                    printf("\n");
+                    continue;
+                }
+                
+                //直接使用connectIdx[edge.second]，这个值会在循环里变化，刻舟求剑啊
+                int discard = connectIdx[edge.second];
+                for (int i = 0; i<size; i++) {
+                    if (connectIdx[i] == discard) {
+                        connectIdx[i] = connectIdx[edge.first];
+//                        printf(" %d",i);
+                    }
+                }
+//                printf("\n");
+                
+                result.push_back(edge);
+                if (result.size() == size-1) {
+                    break;
+                }
+            }
+            
+            if (result.size() < size-1) {
+                return {};
+            }
+            
+            return result;
+        }
     };
 }
 
 
-#pragma mark - 无向图,邻接表/矩阵+索引类型,带权
+#pragma mark - 无向图,基本结构+索引表示邻接点,带权
 
 namespace TFDataStruct{
-    
-    //已知起点，只记录权和另一点
-    struct UndirectedGraphEdge1 {
-        int other;
-        int cost;
-    };
-    
-    //包含两端和权
-    struct UndirectedGraphEdge2 {
-        int first;
-        int second;
-        int cost;
-        
-        bool operator<(const UndirectedGraphEdge2 &other) const{
-            return this->cost<other.cost;
-        }
-    };
-    
-    //无向图节点
-    template <class T>
-    struct UndirectedGraphNode {
-        T val;
-        UndirectedGraphNode(T val):val(val){};
-        //adjacent nodes
-        vector<UndirectedGraphEdge1> edges;
-    };
-    
-    static const int UndirectedGraphInfinity = INFINITY;
     
     template<class T>
     class UndirectedGraph {
     public:
-        typedef UndirectedGraphNode<T> NodeType;
+        typedef GraphNode<T> NodeType;
         
     private:
         //默认为空，调用genEdges，从邻接矩阵里获取所有边
-        void genEdges(vector<UndirectedGraphEdge2> &allEdges){
+        void genEdges(vector<GraphEdge2> &allEdges){
             
             int size = (int)matrix.size();
             //维持i<j，避免重复计算
             for (int i = 0; i<size; i++) {
                 for (int j = i+1; j<size; j++) {
-                    if (matrix[i][j] != UndirectedGraphInfinity) {
+                    if (matrix[i][j] != GraphInfinity) {
                         allEdges.push_back({i, j, matrix[i][j]});
                     }
                 }
@@ -656,7 +744,7 @@ namespace TFDataStruct{
             for (int i = 0; i<size; i++) {
                 matrix.push_back(vector<int>(size, 0));
                 for (int j = 0; j<size; j++) {
-                    matrix[i][j] = UndirectedGraphInfinity;
+                    matrix[i][j] = GraphInfinity;
                 }
             }
         }
@@ -666,7 +754,7 @@ namespace TFDataStruct{
          */
         
         //prim算法求最小生成树
-        vector<UndirectedGraphEdge1> lowestCost_prim(int root = 0){
+        vector<GraphEdge1> lowestCost_prim(int root = 0){
             int size = (int)allNodes.size();
 
             //0:代表已处理，忽略；[1, int_max)，正在候选；int_max 没有访问到，暂不处理
@@ -676,7 +764,7 @@ namespace TFDataStruct{
             }
             
             int processedCount = 1;
-            vector<UndirectedGraphEdge1> closest(size,{0,0});
+            vector<GraphEdge1> closest(size,{0,0});
             
             NodeType *cur = &allNodes[root];
             int curIdx = root;
@@ -722,9 +810,9 @@ namespace TFDataStruct{
             return closest;
         }
         
-        vector<UndirectedGraphEdge2> lowestCost_kruskal(int root = 0){
+        vector<GraphEdge2> lowestCost_kruskal(int root = 0){
             
-            vector<UndirectedGraphEdge2> allEdges;
+            vector<GraphEdge2> allEdges;
             genEdges(allEdges);
             
             sort(allEdges.begin(), allEdges.end());
@@ -735,7 +823,7 @@ namespace TFDataStruct{
                 connectIdx[i] = i;
             }
             
-            vector<UndirectedGraphEdge2> result;
+            vector<GraphEdge2> result;
             
             for (auto &edge : allEdges) {
                 
@@ -753,6 +841,10 @@ namespace TFDataStruct{
                 if (result.size() == size-1) {
                     break;
                 }
+            }
+            
+            if (result.size() < size-1) {
+                return {};
             }
             
             return result;

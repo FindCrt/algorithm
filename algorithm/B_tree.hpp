@@ -38,7 +38,7 @@ namespace TFDataStruct {
         
         typedef B_TreeNode NodeType;
         
-        NodeType *find(keyTp &key, int *keyIdx, bool *exist){
+        NodeType *findNode(keyTp &key, int *keyIdx, bool *exist){
             NodeType *cur = root;
             NodeType *last = nullptr;
             while (cur) {
@@ -58,7 +58,7 @@ namespace TFDataStruct {
             return last;
         }
         
-        void divide(NodeType *node){
+        void divideNode(NodeType *node){
             //把关键字分成左边、中间、右边3部分，中间插入到父节点，左右分别分配到分裂后的两个节点里
             int leftCount = maxSize/2;  //左边关键字个数
             int rightCount = maxSize-leftCount-1;
@@ -98,7 +98,7 @@ namespace TFDataStruct {
             
             //超过最大子节点个数，分裂
             if (node->parent->size > maxSize) {
-                divide(node->parent);
+                divideNode(node->parent);
             }
         }
         
@@ -255,14 +255,14 @@ namespace TFDataStruct {
             }
         }
         
-        /** 添加一个关键字 */
+        /** 添加一个关键字，如果存在则更新 */
         void append(keyTp &key, valTp &val){
             if (root == nullptr) {
                 root = new NodeType(key, val);
             }else{
                 int keyIdx = 0;
                 bool exist = false;
-                NodeType *node = find(key, &keyIdx, &exist);
+                NodeType *node = findNode(key, &keyIdx, &exist);
                 //如果存在，只做值的修正
                 if (exist) {
                     node->vals[keyIdx] = val;
@@ -272,21 +272,32 @@ namespace TFDataStruct {
                 insertKey(key, val, node, keyIdx);
                 //超过最大子节点个数，分裂
                 if (node->size > maxSize) {
-                    divide(node);
+                    divideNode(node);
                 }
             }
         }
         
+        /** 删除一个关键字 */
         void erase(keyTp &key){
             int keyIdx = 0;
             bool exist = false;
-            NodeType *node = find(key, &keyIdx, &exist);
+            NodeType *node = findNode(key, &keyIdx, &exist);
             
             if (!exist) {
                 return;
             }
             
             eraseKey(node, keyIdx);
+        }
+        
+        valTp *find(keyTp &key){
+            int keyIdx = 0;
+            bool exist = false;
+            NodeType *node = findNode(key, &keyIdx, &exist);
+            if (exist) {
+                return &node->vals[keyIdx];
+            }
+            return nullptr;
         }
         
         //按层输出B树的关键字

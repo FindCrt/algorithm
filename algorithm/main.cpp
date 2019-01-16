@@ -56,6 +56,18 @@ int main(int argc, const char * argv[]) {
 //        bt.show();
     }
     
+    vector<string> keys2 = {"q","d","r"};
+    vector<string> val2 = {"w","f","t"};
+    B_Tree<string, string> bt2(keys2, 5, val2);
+    
+    string key = "d";
+    auto valP = bt2.find(key);
+    if (valP) {
+        cout<<*valP<<endl;
+    }else{
+        cout<<"not exist"<<endl;
+    }
+    
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;
     mach_timebase_info(&timebase);

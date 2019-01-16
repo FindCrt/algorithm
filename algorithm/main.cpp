@@ -47,8 +47,14 @@ int main(int argc, const char * argv[]) {
     
     vector<int> keys = {1,2,6,7,11,4,8,13,10,5,17,9,16,20,3,12,14,18,19,15};
     B_Tree<int, int> bt(keys, 5, 0);
+//    bt.show();
     
-    bt.show();
+    vector<int> deleteKeys = {8,16,15,4};
+    for (auto &k : deleteKeys){
+        bt.erase(k);
+//        printf("\n----------------\n");
+//        bt.show();
+    }
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

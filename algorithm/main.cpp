@@ -38,35 +38,15 @@
 #include "SegmentTree.hpp"
 #include "CommonStructs.hpp"
 #include "B_tree.hpp"
+#include "AVL_tree.hpp"
 
 
 int main(int argc, const char * argv[]) {
     
     uint64_t start = mach_absolute_time();
     
-    
-    vector<int> keys = {1,2,6,7,11,4,8,13,10,5,17,9,16,20,3,12,14,18,19,15};
-    B_Tree<int, int> bt(keys, 5, 0);
-//    bt.show();
-    
-    vector<int> deleteKeys = {8,16,15,4};
-    for (auto &k : deleteKeys){
-        bt.erase(k);
-//        printf("\n----------------\n");
-//        bt.show();
-    }
-    
-    vector<string> keys2 = {"q","d","r"};
-    vector<string> val2 = {"w","f","t"};
-    B_Tree<string, string> bt2(keys2, 5, val2);
-    
-    string key = "d";
-    auto valP = bt2.find(key);
-    if (valP) {
-        cout<<*valP<<endl;
-    }else{
-        cout<<"not exist"<<endl;
-    }
+    vector<int> nums = {16,3,7,11,9,26,18,14,15};
+    AVL_Tree<int> avlTree(nums);
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

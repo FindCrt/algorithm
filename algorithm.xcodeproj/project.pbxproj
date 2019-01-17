@@ -31,6 +31,7 @@
 		18226FD2209ABD71001C461E /* page1.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = page1.hpp; sourceTree = "<group>"; };
 		1829A87921EDB45100E289BB /* B_tree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = B_tree.hpp; sourceTree = "<group>"; };
 		182B6A6121D38BB200C42ADF /* ExampleFunc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ExampleFunc.h; sourceTree = "<group>"; };
+		182EB76421F00E6200FD92B9 /* AVL_tree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AVL_tree.hpp; sourceTree = "<group>"; };
 		1831A8AA21DC45E100DDF64C /* TypicalProblems.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = TypicalProblems.hpp; sourceTree = "<group>"; };
 		18461CF4209C146C008FF3CE /* TopK.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TopK.cpp; sourceTree = "<group>"; };
 		18461CF5209C146C008FF3CE /* TopK.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TopK.hpp; sourceTree = "<group>"; };
@@ -107,6 +108,7 @@
 				1831A8AA21DC45E100DDF64C /* TypicalProblems.hpp */,
 				1882257021DDE55900306114 /* DeapFirstSearch.hpp */,
 				1829A87921EDB45100E289BB /* B_tree.hpp */,
+				182EB76421F00E6200FD92B9 /* AVL_tree.hpp */,
 			);
 			path = algorithm;
 			sourceTree = "<group>";

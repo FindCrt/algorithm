@@ -24,7 +24,7 @@
 
 #include "CommonStructs.hpp"
 #include "TypicalProblems.hpp"
-
+#include "TestFuncs.hpp"
 
 static bool pointComp(Point &p1, Point &p2){
     return p1.x<p2.x;
@@ -198,47 +198,132 @@ void wallsAndGates(vector<vector<int>> &rooms) {
     // write your code here
 }
 
-bool intGridVisit(vector<vector<int>> &grid, Point curP, int depth){
-    printf("%d\n",grid[curP.x][curP.y]);
-    return true;
-}
+
+
+typedef enum {
+    ///空地
+    GridNodeTypeBlank,
+    ///障碍物
+    GridNodeTypeBarrier,
+    ///出口
+    GridNodeTypeExit,
+}GridNodeType;
 
 template <class T>
 class GridIter{
-    
 public:
-    typedef bool (*VisitPointFunc)(vector<vector<T>> &grid, Point curP, int depth);
+    typedef GridNodeType (*VisitPointFunc)(vector<vector<T>> &grid, Point curP, int depth, void *context);
     VisitPointFunc visitFunc;
     GridIter(VisitPointFunc visitFunc):visitFunc(visitFunc){};
 };
 
 //这样F第三个参数可以接受“任意可以转换了GridIter<T>”
 template<class T, class F>
-static void BFSGrid(vector<vector<T>> &grid, Point start, F visitFunc){
-    BFSGrid(grid, start, (GridIter<T>)visitFunc);
+static void BFSGrid(vector<vector<T>> &grid, Point start, F visitFunc, void *context){
+    BFSGrid(grid, start, (GridIter<T>)visitFunc, context);
 }
 
 template<class T>
-static void BFSGrid(vector<vector<T>> &grid, Point &start, GridIter<T> iter){
+static void BFSGrid(vector<vector<T>> &grid, Point &start, GridIter<T> iter, void *context){
+    
+    //最后一个位存放是否访问过，其他位存储深度
+    int height = (int)grid.size(), width = (int)grid.front().size();
+    int mark[height][width];
+    memset(mark, 0, sizeof(mark));
+    
     queue<Point> pointsQ;
     pointsQ.push(start);
+    mark[start.x][start.y] = 1;
+    GridNodeType type = iter.visitFunc(grid, start, 0, context);
+    if (type==GridNodeTypeExit) {
+        return;
+    };
+    
+    while (!pointsQ.empty()) {
+        auto p = pointsQ.front();
+        pointsQ.pop();
+        
+        int depth = mark[p.x][p.y]>>1;
+        Point round[4] = {{p.x+1, p.y},{p.x-1, p.y},{p.x, p.y+1},{p.x, p.y-1}};
+        for (int i = 0; i<4; i++) {
+            auto r = round[i];
+            if (r.x<height && r.x>=0 && r.y<width && r.y>=0 && !(mark[r.x][r.y]&1)) {
+                GridNodeType type = iter.visitFunc(grid, r, depth+1, context);
+                mark[r.x][r.y] = ((depth+1)<<1)|1;
+                if (type == GridNodeTypeExit){
+                    return;
+                }else{
+                    pointsQ.push(r);
+                }
+            }
+        }
+    }
+}
+
+GridNodeType houseGridVisit(vector<vector<int>> &grid, Point curP, int depth, void *context){
+    printf("[%d,%d] ",curP.x,curP.y);
+    int *disSum = (int*)context;
+    int width = (int)grid.front().size();
+    
+    if (grid[curP.x][curP.y] == 1) { //房子
+        return GridNodeTypeBarrier;
+    }else{
+        disSum[curP.x*width+curP.y] += depth;
+        return GridNodeTypeBlank;
+    }
+}
+
+/*
+ 1. BFS
+ 2. 暴力解，和1一样，复杂度为O(K*N^2)，K为房子的总数，房子密集时恐怖
+ 3. 分别求x和y的轴的距离，每个轴的求解，可以建一个一维数组，统计当前行或列上的房子个数，以这个一维数组就可以求解
+ 4. 同上，但求解单轴时，使用递推方法，上面时间复杂度O(n^2),这里是O(N)
+ 5. 求中卫数，对单轴而言，最近的距离就是中位数，但中位数位置可能有房子，所以还需要从中心向外扩散，复杂度为O(lgN)*k,k看房子是否集中。
+ */
+int shortestDistance(vector<vector<int>> &grid) {
+    int height = (int)grid.size(), width = (int)grid.front().size();
+    vector<Point> houses;
+    
+    for (int i = 0; i<height; i++) {
+        for (int j = 0; j<width; j++) {
+            //每个房子为起点进行广度搜索，把它到每个空地的距离求和
+            if (grid[i][j]==1) {
+                houses.push_back({i,j});
+            }
+        }
+    }
+    
+    int size = (int)houses.size();
+    sort(houses.begin(), houses.end(), Point::compareX);
+    int destX;
+    if (!(size&1)) { //偶数
+        destX = (houses[size/2-1].x+houses[size/2].x)/2;
+    }else{
+        destX = houses[size/2].x;
+    }
+    
+    sort(houses.begin(), houses.end(), Point::compareY);
+    int destY;
+    if (!(size&1)) { //偶数
+        destY = (houses[size/2-1].y+houses[size/2].y)/2;
+    }else{
+        destY = houses[size/2].y;
+    }
+    
+    int offset = 0, offsetX;
     
     
+    return minDis;
 }
 
 int main(int argc, const char * argv[]) {
     uint64_t start = mach_absolute_time();
-    
 
-    vector<vector<int>> grid = {{1,2},{3,4}};
-    
-//    GridIter<int>::VisitPointFunc func = intGridVisit;
-    GridIter<int> iter = intGridVisit;
-    
-    BFSGrid(grid, {0,0}, intGridVisit);
-    
-    
-    
+    vector<vector<int>> grid;
+    string path = "/Users/apple/Desktop/short_data";
+    read2DVectorInt(path, grid);
+    auto result = shortestDistance(grid);
+    printf("%d\n",result);
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

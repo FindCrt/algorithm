@@ -48,4 +48,28 @@ void readPoints(string &path, vector<Point> &points){
     });
 }
 
+
+void read2DVectorInt(string &path, vector<vector<int>> &nums){
+    readFile(path, [&nums](string &line){
+        
+        int start=-1, idx = 0;
+        vector<int> arr;
+        for (auto &c : line){
+            if (c == '[') {
+                arr = {};
+                start = idx+1;
+            }else if (c == ',' && start>0){
+                arr.push_back(rangeStringToInt(line, start, idx-1));
+                start = idx+1;
+            }else if (c == ']' && start>0){
+                arr.push_back(rangeStringToInt(line, start, idx-1));
+                nums.push_back(arr);
+                start=-1;
+            }
+            
+            idx++;
+        }
+    });
+}
+
 #endif /* TestFuncs_hpp */

@@ -18,6 +18,9 @@
 
 using namespace std;
 
+#define FirstSmall(first,second)\
+if (first>second){auto temp=first;first=second;second=temp;}
+
 class Interval {
 public:
     int start, end;
@@ -30,6 +33,14 @@ public:
 struct Point{
     int x;
     int y;
+    
+    static bool compareX(Point &p1, Point &p2){
+        return p1.x<p2.x;
+    }
+    
+    static bool compareY(Point &p1, Point &p2){
+        return p1.y<p2.y;
+    }
 };
 
 class ListNode {
@@ -196,8 +207,7 @@ bool canReachPoint(vector<vector<T>> &map, Point start, T wall, T road, Point ta
     return false;
 }
 
-#define FirstSmall(first,second)\
-if (first>second){auto temp=first;first=second;second=temp;}
+
 
 //#define swapArray()
 

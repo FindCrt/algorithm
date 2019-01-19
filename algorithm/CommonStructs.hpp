@@ -13,6 +13,7 @@
 #include <iostream>
 #include <functional>
 #include "BinaryTree.hpp"
+#include <queue>
 
 
 using namespace std;
@@ -194,5 +195,25 @@ bool canReachPoint(vector<vector<T>> &map, Point start, T wall, T road, Point ta
     
     return false;
 }
+
+#define FirstSmall(first,second)\
+if (first>second){auto temp=first;first=second;second=temp;}
+
+//#define swapArray()
+
+template<class _T1, class _T2>
+class PairSort{
+public:
+    static bool pairFirstComp(pair<_T1, _T2> &pair1, pair<_T1, _T2> &pair2){
+        return pair1.first<pair2.first;
+    }
+    
+    static bool pairSecondComp(pair<_T1, _T2> &pair1, pair<_T1, _T2> &pair2){
+        return pair1.second<pair2.second;
+    }
+};
+
+
+
 
 #endif /* CommonStructs_hpp */

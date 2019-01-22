@@ -106,10 +106,27 @@ static void printVectorOneLine(vector<T> &vector){
 }
 
 template<class T>
+static void printArrayOneLine(T *array, int size){
+    for (int i =0; i<size; i++){
+        cout<<array[i]<<" ";
+    }
+    cout<<endl;
+}
+
+
+template<class T>
 static void printTwoDVector(vector<vector<T>> & twoDVector){
     for (auto iter = twoDVector.begin(); iter != twoDVector.end(); iter++) {
         printVectorOneLine(*iter);
     }
+}
+
+template<class T1, class T2>
+static void printVectorPair(vector<pair<T1, T2>> &vector){
+    for (auto &p : vector){
+        cout<<"("<<p.first<<","<<p.second<<") ";
+    }
+    cout<<endl;
 }
 
 #pragma mark - 辅助工具函数

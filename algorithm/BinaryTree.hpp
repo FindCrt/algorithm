@@ -28,6 +28,9 @@ public:
         this->left = this->right = NULL;
     }
     
+    /** 节点访问函数，返回是否结束遍历 */
+    typedef bool(*NodeVisitFunc) (TreeNode *node);
+    
     static TreeNode *createWithArray(vector<string> &nodeChars){
         if (nodeChars.empty() || nodeChars.front().front() == '#') {
             return nullptr;
@@ -231,6 +234,32 @@ public:
         list.push_back(node);
         if (node->right) {
             inorderList(list, node->right);
+        }
+    }
+    
+    /** 先序遍历 */
+    static void frontIter(TreeNode *root, NodeVisitFunc visitFunc){
+        if (root == nullptr) {
+            return;
+        }
+        
+        stack<TreeNode *> path;
+        path.push(root);
+        
+        while (!path.empty()) {
+            
+            auto cur = path.top();
+            if (visitFunc(cur)) { //访问节点
+                break;
+            }
+            path.pop();
+            
+            if (cur->right) {
+                path.push(cur->right);
+            }
+            if (cur->left) {
+                path.push(cur->left);
+            }
         }
     }
     

@@ -90,6 +90,8 @@ public:
 
 #pragma mark - 调试函数
 
+#define printBool(x) printf("%s\n",x?"True":"False");
+
 template<class T>
 static void printVector(vector<T> &vector){
     for (auto &val : vector){
@@ -240,7 +242,41 @@ public:
     }
 };
 
+namespace TFDataStruct {
+    class StringHash{
+        long long p;
+        long long mod;
+    public:
+        StringHash(long long p=1e9+7, long long mod=1e9+9):p(p),mod(mod){}
+        long long hash(string &str){
+            long long hashVal = 1;
+            for (auto &c : str){
+                hashVal = (hashVal*p+c)%mod;
+            }
+            return hashVal;
+        }
+    };
+}
 
+static void splitWords(string &text, vector<string> &words){
+#define isabc(x) ((x>='a'&&x<='z')||(x>='A'&&x<='Z'))
+    int start=-1, i = 0;
+    for (auto &c : text){
+        
+        if (start<0) {
+            if (isabc(c)) {
+                start = i;
+            }
+        }else{
+            if (!isabc(c)) {
+                words.push_back(text.substr(start, i-start));
+                start = -1;
+            }
+        }
+        
+        i++;
+    }
+}
 
 
 #endif /* CommonStructs_hpp */

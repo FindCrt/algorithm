@@ -64,15 +64,19 @@ namespace TFDataStruct {
         }
         
         int count(string &word){
+            return count(word.begin(), word.end());
+        }
+        
+        inline int count(string::iterator start, string::iterator end){
             TrieNode *node = &root;
-            int idx = 0;
-            while (idx<word.length()) {
-                auto &next = node->childern[word[idx]];
+            auto iter = start;
+            while (iter!=end) {
+                auto &next = node->childern[*iter];
                 if (next == nullptr) {
                     return 0;
                 }
                 node = next;
-                idx++;
+                iter++;
             }
             
             return node->mark;

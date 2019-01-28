@@ -307,22 +307,94 @@ string longestPalindrome(string &s) {
     return s.substr(maxIdx-(maxLen-1)/2, maxLen);
 }
 
+struct IdxNode{
+    uint8_t val;
+    uint8_t next;
+};
+
+vector<int> anagramMappings(vector<int> &A, vector<int> &B) {
+    uint8_t size = (uint8_t)A.size();
+    unordered_map<int, vector<int>> idxB;
+    
+    for (uint8_t i = 0; i<size; i++) {
+        idxB[B[i]].push_back(i);
+    }
+    
+    vector<int> result;
+    for (int i = 0; i<size; i++) {
+        auto &idxes = idxB[A[i]];
+        result.push_back(idxes.back());
+        idxes.pop_back();
+    }
+    
+    return result;
+}
+
+int subarraySumEqualsK(vector<int> &nums, int k) {
+    int size = (int)nums.size();
+    unordered_map<int, vector<int>> exist;
+    
+    int sum = 0;
+    for (int i = 0; i<size; i++) {
+        sum += nums[i];
+        printf("%d ",sum);
+        exist[sum].push_back(i);
+    }
+    printf("\n");
+    
+    auto i = exist.find(k);
+    int result = i == exist.end()?0:i->second.size();
+    for (auto &c : exist){
+        auto iter = exist.find(c.first+k);
+        if (iter != exist.end()) {
+            for (auto &idx1 : c.second){
+                for (auto &idx2 : iter->second){
+                    if (idx2>idx1) {
+                        printf("(%d, %d),%d-%d=%d\n",idx1,idx2,iter->first,c.first,k);
+                    }
+                    result += idx2>idx1?1:0;
+                }
+            }
+        }
+    }
+    
+    return result;
+}
+
+bool isSentenceSimilarity(vector<string> &words1, vector<string> &words2, vector<vector<string>> &pairs) {
+
+    if (words1.size() != words2.size()) {
+        return false;
+    }
+    
+    unordered_map<string, bool> relations;
+    
+    for (auto &p : pairs) {
+        relations[p.front()+p.back()] = true;
+        relations[p.back()+p.front()] = true;
+    }
+    
+    for (int i = 0; i<words1.size(); i++) {
+        if (words1[i].compare(words2[i]) == 0) {
+            continue;
+        }
+        if (relations.find(words1[i]+words2[i]) == relations.end()) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 #define add(i) ts.add(i);
 #define find(i) {printf("%s\n",ts.find(i)?"true":"false");}
 int main(int argc, const char * argv[]) {
     uint64_t start = mach_absolute_time();
     
-    string str = "bb";
-    auto p = longestPalindrome(str);
-    cout<<p<<endl;
-    
-    vector<string> words;
-    string path = "/Users/apple/Downloads/5 (5).in";
-    readVectorString(path, words);
-    
-
-    auto result = palindromePairs(words);
-    printTwoDVector(result);
+    vector<string> word1 = {"great","acting","skills"};
+    vector<string> word2 = {"fine","drama","talent"};
+    vector<vector<string>> pairs = {{"great","fine"},{"drama","acting"},{"skills","talent"}};
+    isSentenceSimilarity(word1, word2, pairs);
     
     uint64_t duration = mach_absolute_time() - start;
     mach_timebase_info_data_t timebase;

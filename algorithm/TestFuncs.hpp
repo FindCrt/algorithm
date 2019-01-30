@@ -12,21 +12,6 @@
 #include <stdio.h>
 #include <vector>
 
-inline int rangeStringToInt(string &str, int start, int end){
-    int num = 0, digit = 1, sign = 1;
-    if (str[start]=='-') {
-        sign = -1;
-        start++;
-    }
-    
-    for (int i = end; i>=start; i--) {
-        num += (str[i]-'0')*digit;
-        digit *= 10;
-    }
-    
-    return num*sign;
-}
-
 void readPoints(string &path, vector<Point> &points){
     readFile(path, [&points](string &line){
         

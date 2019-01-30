@@ -278,5 +278,40 @@ static void splitWords(string &text, vector<string> &words){
     }
 }
 
+static int extractNumber(string &str){
+    int num = 0, digit = 1;
+    for (int i = (int)str.length()-1; i>=0; i--) {
+        if (str[i]>='0' && str[i]<='9') {
+            num += digit*(str[i]-'0');
+            digit *= 10;
+        }else{
+            if (num!=0){
+                if (str[i]=='-') {
+                    num *= -1;
+                }else{
+                    break;
+                }
+            }
+        }
+    }
+    
+    return num;
+}
+
+inline int rangeStringToInt(string &str, int start, int end){
+    int num = 0, digit = 1, sign = 1;
+    if (str[start]=='-') {
+        sign = -1;
+        start++;
+    }
+    
+    for (int i = end; i>=start; i--) {
+        num += (str[i]-'0')*digit;
+        digit *= 10;
+    }
+    
+    return num*sign;
+}
+
 
 #endif /* CommonStructs_hpp */

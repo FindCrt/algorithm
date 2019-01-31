@@ -298,7 +298,8 @@ static int extractNumber(string &str){
     return num;
 }
 
-inline int rangeStringToInt(string &str, int start, int end){
+inline int rangeStringToInt(string &str, int start, int end, bool *isInt = nullptr){
+    
     int num = 0, digit = 1, sign = 1;
     if (str[start]=='-') {
         sign = -1;
@@ -306,10 +307,15 @@ inline int rangeStringToInt(string &str, int start, int end){
     }
     
     for (int i = end; i>=start; i--) {
+        if (str[i]-'0'>9) {
+            if (isInt) *isInt = false;
+            return 0;
+        }
         num += (str[i]-'0')*digit;
         digit *= 10;
     }
     
+    if(isInt) *isInt = true;
     return num*sign;
 }
 

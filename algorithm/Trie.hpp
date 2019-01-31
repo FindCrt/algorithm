@@ -21,16 +21,14 @@ namespace TFDataStruct {
         struct TrieNode{
             char ch;
             //对应的字符串的个数
-            uint32_t mark = 0;
+            uint32_t count = 0;
             T relateData;  //做额外的数据处理
             TrieNode *parent = nullptr;
             unordered_map<char, TrieNode*> childern;
         };
-        struct TrieNodeVisitor{
-            typedef void (*VisitFunc)(TrieNode *node, string &word, int idx);
-            VisitFunc visitF;
-            TrieNodeVisitor(VisitFunc visitF):visitF(visitF){};
-        };
+        
+        typedef function<void(TrieNode *node, string &word, int idx)> TrieNodeVisitor;
+        typedef function<void(TrieNode *node)> TrieNodeVisitor2;
     private:
     public:
         TrieNode root;
@@ -39,6 +37,22 @@ namespace TFDataStruct {
         Trie(vector<string> &words){
             for (auto &w : words){
                 insert(w, nullptr);
+            }
+        }
+        
+        void iterateNodes(TrieNodeVisitor2 visitor){
+            stack<TrieNode*> path;
+            path.push(&root);
+            
+            while (!path.empty()) {
+                auto top = path.top();
+                path.pop();
+                
+                visitor(top);
+                
+                for (auto &p:top->childern){
+                    if (p.second) path.push(p.second);
+                }
             }
         }
         
@@ -54,20 +68,28 @@ namespace TFDataStruct {
                     next->parent = node;
                 }
                 node = next;
-                if (visitor.visitF) visitor.visitF(node, word, idx);
+                if (visitor) visitor(node, word, idx);
                 
                 idx++;
             }
-            node->mark++;
+            node->count++;
             
             return node;
         }
         
-        int count(string &word){
+        inline bool exist(string &word){
+            return count(word)>0;
+        }
+        
+        inline int count(string &word){
             return count(word.begin(), word.end());
         }
         
-        inline int count(string::iterator start, string::iterator end){
+        inline int count(const string::iterator &start, const string::iterator &end){
+            return find(start, end)->count;
+        }
+        
+        TrieNode *find(const string::iterator &start, const string::iterator &end){
             TrieNode *node = &root;
             auto iter = start;
             while (iter!=end) {
@@ -79,11 +101,7 @@ namespace TFDataStruct {
                 iter++;
             }
             
-            return node->mark;
-        }
-        
-        bool exist(string &word){
-            return count(word)>0;
+            return node;
         }
     };
 }

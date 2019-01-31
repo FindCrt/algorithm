@@ -7780,9 +7780,7 @@ int FindElements(vector<vector<int>> &Matrix) {
             }
             int charIdx = i/64, innerIdx = i%64;
             iter->second[charIdx] |= (1ull<<(63-innerIdx)); //每行，出现了某个数，只会标记一次，多次标记会覆盖
-            if (n==4) {
-                printf("%llu \n",iter->second[charIdx]);
-            }
+            
         }
         i++;
     }
@@ -7801,7 +7799,7 @@ int FindElements(vector<vector<int>> &Matrix) {
             return iter.first;
         }
     }
-    return 0;
+    return -1;
 }
 
 vector<string> findRepeatedDna(string &s) {

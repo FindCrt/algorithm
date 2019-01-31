@@ -361,14 +361,385 @@ vector<vector<string>> findDuplicate(vector<string> &paths) {
     return result;
 }
 
+int findPairs(vector<int> &nums, int k) {
+    unordered_map<int, int> exist;
+    for (auto &n:nums){
+        exist[n]++;
+    }
+    
+    int count = 0;
+    if (k == 0) {
+        for (auto &p:exist){
+            if (p.second>1) {
+                count++;
+            }
+        }
+    }else{
+        for (auto &p:exist){
+            if (exist.find(p.first+k)!=exist.end()) {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+int islandPerimeter(vector<vector<int>> &grid) {
+    int height = (int)grid.size(), width = (int)grid.front().size();
+    int perimeter = 0;
+    int i=0;
+    for (auto &row:grid){
+        int j=0;
+        for (auto &mark:row){
+            
+            if (mark==1) {
+                perimeter += (i==0||grid[i-1][j]==0)?1:0;
+                perimeter += ((i==height-1)||grid[i+1][j]==0)?1:0;
+                perimeter += (j==0||row[j-1]==0)?1:0;
+                perimeter += ((j==width-1)||row[j+1]==0)?1:0;
+            }
+//            printf("(%d,%d) %d\n",i,j,perimeter);
+            j++;
+        }
+        i++;
+    }
+    return perimeter;
+}
+
+int numberOfBoomerangs(vector<vector<int>> &points) {
+    //格式：{点1的索引:{距离:点2的个数}}
+    vector<unordered_map<int, int>> disMap;
+    
+    int i = 0;
+    for (auto &p:points){
+        disMap.push_back(unordered_map<int, int>());
+        for (int j = i+1; j<points.size();j++){
+            auto &q = points[j];
+            int dis = (p[0]-q[0])*(p[0]-q[0])+(p[1]-q[1])*(p[1]-q[1]);
+            disMap[i][dis]++;
+            disMap[j][dis]++;
+        }
+        i++;
+    }
+    
+    int count = 0;
+    for (auto &p1:disMap){
+        for (auto &p2:p1){
+            count += p2.second*(p2.second-1);
+        }
+    }
+    
+    return count;
+}
+
+bool containsNearbyDuplicate(vector<int> &nums, int k) {
+    unordered_map<int, int> idxMap;
+    int idx = 0;
+    for (auto &n:nums){
+        auto iter = idxMap.find(n);
+        if (iter != idxMap.end() && idx<iter->second) {
+            return true;
+        }
+        idxMap[n] = idx+k+1;
+        idx++;
+    }
+    
+    return false;
+}
+
+int recommendFriends(vector<vector<int>> &friends, int user) {
+    int scores[friends.size()];
+    memset(scores, 0, sizeof(scores));
+    
+    for (auto &f:friends[user]){
+        for (auto &f2:friends[f]){
+            scores[f2]++;
+        }
+        scores[f]=0;
+    }
+    
+    int maxScore=0, maxIdx=-1;
+    for (int i = 0; i<friends.size(); i++) {
+        if (i!=user && scores[i]>maxScore) {
+            maxIdx = i;
+            maxScore = scores[i];
+        }
+    }
+    
+    return maxIdx;
+}
+
+bool containsDuplicate(vector<int> &nums) {
+    sort(nums.begin(), nums.end());
+    int last = INT_MIN;
+    for(auto &n:nums){
+        if (n==last) {
+            return true;
+        }
+        last = n;
+    }
+    return false;
+}
+
+struct findingNumberNode {
+    int val;
+    int next;
+};
+
+int findingNumber(vector<vector<int>> &mat){
+    
+    unordered_map<int, bool> exist;
+    for (auto &n:mat.front()){
+        exist[n]=true;
+    }
+    
+    int initSize = (int)exist.size();
+    findingNumberNode candidates[initSize+1];
+    
+    int idx = 0;
+    for (auto &p:exist){
+        candidates[idx] = {p.first, idx+1};
+        idx++;
+    }
+    candidates[initSize].next = -1; //最后是一个哨兵节点，用next==-1做标识
+    
+    for (auto mi = mat.begin()+1; mi!=mat.end();mi++){
+        
+        unordered_map<int, bool> exist;
+        for (auto &n:*mi){
+            exist[n]=true;
+        }
+        
+        auto *cur = &candidates[0];
+        while (cur->next>0) {  //next==-1时踩到了哨兵节点，结束遍历
+            if (!exist[cur->val]) {
+                //通过拷贝下一个节点的值实现单链表的删除
+                cur->val = candidates[cur->next].val;
+                cur->next = candidates[cur->next].next;
+            }else{
+                cur = &candidates[cur->next];
+            }
+        }
+        if (candidates[0].next<0) {
+            return -1;
+        }
+    }
+    
+    int result = INT_MAX;
+    auto *cur = &candidates[0];
+    while (cur->next>0) {  //next==-1时踩到了哨兵节点，结束遍历
+        result = min(result, cur->val);
+        cur = &candidates[cur->next];
+    }
+    return result;
+}
+
+vector<int> tree(vector<int> &x, vector<int> &y, vector<int> &a, vector<int> &b) {
+    unordered_map<int, vector<int>> relations;
+    for (int i = 0; i<x.size(); i++) {
+        relations[x[i]].push_back(y[i]);
+        relations[y[i]].push_back(x[i]);
+    }
+    
+    unordered_map<int, int> parents;
+    parents[1] = -1;
+    
+    stack<int> path;
+    path.push(1);
+    
+    while (!path.empty()) {
+        auto cur = path.top();
+        path.pop();
+        
+        int parent = parents[cur];
+        for (auto &e:relations[cur]){
+            if (e != parent) {
+                parents[e] = cur;
+                path.push(e);
+            }
+        }
+    }
+    
+    vector<int> result;
+    for (int i = 0; i<a.size(); i++) {
+        int val = 0;
+        auto parA = parents[a[i]];
+        auto parB = parents[b[i]];
+        
+        if (parA==b[i] || parB==a[i]) {
+            val = 2;
+        }else if(parA == parB){
+            val = 1;
+        }
+        
+        result.push_back(val);
+    }
+    
+    return result;
+}
+
+vector<int> findSubstring(string &s, vector<string> &words) {
+    
+    typedef TFDataStruct::Trie<pair<int, int>> TrieType;
+    TrieType exist;
+    int len = (int)words.front().length();
+    int wSize = (int)words.size();
+    int totalLen = len*wSize;
+    
+    for (auto &w:words){
+        exist.insert(w)->relateData.first++;
+    }
+    int sLen = (int)s.length();
+    
+    vector<int> result;
+    for (int i = 0; i<=sLen-totalLen; i++) {
+        
+        exist.iterateNodes([](TrieType::TrieNode *node){
+            node->relateData.second = node->relateData.first;
+        });
+        
+        bool allExist = true;
+        int score = 0;
+        for (int j = 0; j<totalLen; j+=len) {
+            auto node = exist.find(s.begin()+i+j, s.begin()+i+j+len);
+            if (node == nullptr || node->count == 0) {
+                allExist = false;
+                break;
+            }
+            if (--node->relateData.second >= 0) {
+                score++;
+            }
+        }
+        if (allExist && score==wSize) {
+            result.push_back(i);
+        }
+    }
+    
+    return result;
+}
+
+//一个式子由多个小式子构成，每个式子之间用运算符连接
+//如果式子内只包含乘除，则弱化为组件，每个组件形式为:-1*a*b/c/d,即因子+乘变量+除变量
+class BCIComponent{
+public:
+    int factor = 0; //因子
+    vector<string> mulVarbs; //乘积变量
+    vector<string> divVarbs; //除的变量
+    BCIComponent(int factor = 0):factor(factor){};
+};
+
+class BCIFormula{
+public:
+    //复杂式子：subForms有多个子式子；简单式子：subForms为空，实际值为comp
+    vector<BCIFormula> subForms;
+    BCIComponent *comp = nullptr;
+    BCIFormula(int factor){
+        comp = new BCIComponent(factor);
+    }
+    BCIFormula(){};
+};
+
+typedef enum{
+    BCIElementTypeUnknown,
+    BCIElementTypeAdd,
+    BCIElementTypeSub,
+    BCIElementTypeMul,
+    BCIElementTypeDiv,
+    BCIElementTypeBracketL,
+    BCIElementTypeBracketR,
+    BCIElementTypeVerb,
+    BCIElementTypeNumber
+}BCIElementType;
+
+//从start开始，一直解析到字符串结束或者遇到右括号，返回式子对象，结束为止填入到end
+BCIFormula getFormulaFromExp(string &expression, unordered_map<string, int> &verbs, int start, int *end){
+    
+    BCIFormula formula;
+    formula.subForms.push_back(BCIFormula(0)); //用来存加法的零散的数
+    
+    expression.push_back(' ');
+    BCIFormula *lastForm = nullptr;
+    
+    int last = 0, len = (int)expression.length();
+    bool isDivide = false;
+    BCIElementType lastEType = BCIElementTypeAdd;
+    for (int idx=start; idx<len; idx++){
+        char c = expression[idx];
+        if (c==' ') {
+            BCIElementType eType = BCIElementTypeUnknown;
+            if (idx-last==1) {
+                char c = expression[last];
+                switch (c) {
+                    case '+':
+                        eType = BCIElementTypeAdd;
+                        break;
+                    case '-':
+                        eType = BCIElementTypeSub;
+                        break;
+                    case '*':
+                        eType = BCIElementTypeMul;
+                        break;
+                    case '/':
+                        eType = BCIElementTypeDiv;
+                        break;
+                    case '(':
+                        eType = BCIElementTypeBracketL;
+                        break;
+                    case ')':
+                        eType = BCIElementTypeBracketR;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (eType == BCIElementTypeUnknown) {
+                bool isInt;
+                int number = rangeStringToInt(expression, last, idx-1, &isInt);
+                eType = isInt?BCIElementTypeNumber:BCIElementTypeVerb;
+            }
+            
+            switch (eType) {
+                case BCIElementTypeBracketL:
+                    int end;
+                    BCIFormula nextForm = getFormulaFromExp(expression, verbs, idx+1, &end);
+                    break;
+                    
+                default:
+                    break;
+            }
+            
+            lastEType = eType;
+            last = idx+1;
+        }
+        idx++;
+    }
+}
+
+vector<string> basicCalculatorIV(string &expression, vector<string> &evalvars, vector<int> &evalints) {
+    
+    
+    unordered_map<string, int> verbs;
+    for (int i = 0; i<evalvars.size(); i++){
+        verbs[evalvars[i]] = evalints[i];
+    }
+    
+    
+    
+}
+
 int main(int argc, const char * argv[]) {
     uint64_t start = mach_absolute_time();
     string path = "/Users/apple/Downloads/9 (2).in";
     
     
+    string s = "abababab";
+    vector<string> words = {"ab","ab","ab"};
+    findSubstring(s, words);
     
-    vector<string> paths = {"root/qgjazhtliq/djmevsktisuvd/acsuolhnermqzok/mkts/ibrdqxawjgut/emb wl.txt(odumfqzwczehoyk) z.txt(gojsklotgchjzfm) txtoyg.txt(gojsklotgchjzfm) eupidhefx.txt(ahlsazuzrsf) rekzkaifwp.txt(yfxaymkefaofowqjpgaceffkjsehtmqkgy) l.txt(odumfqzwczehoyk) bqmhpxumxlbe.txt(yfxaymkefaofowqjpgaceffkjsehtmqkgy) qoqgiauqbayuc.txt(odumfqzwczehoyk) mpstemqlxy.txt(ahlsazuzrsf)"};
-    findDuplicate(paths);
+    BCIFormula *o1 = new BCIFormula();
+    BCIFormula *o2 = new BCIComponent();
+    
+    cout<<typeid(o1).name()<<" "<<typeid(o2).name()<<endl;
     
     
     uint64_t duration = mach_absolute_time() - start;

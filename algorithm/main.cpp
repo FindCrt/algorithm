@@ -620,24 +620,30 @@ vector<int> findSubstring(string &s, vector<string> &words) {
 
 //一个式子由多个小式子构成，每个式子之间用运算符连接
 //如果式子内只包含乘除，则弱化为组件，每个组件形式为:-1*a*b/c/d,即因子+乘变量+除变量
-class BCIComponent{
-public:
-    int factor = 0; //因子
-    vector<string> mulVarbs; //乘积变量
-    vector<string> divVarbs; //除的变量
-    BCIComponent(int factor = 0):factor(factor){};
-};
+//class BCIComponent{
+//public:
+//    int factor = 0; //因子
+//    vector<string> mulVarbs; //乘积变量
+//    vector<string> divVarbs; //除的变量
+//    BCIComponent(int factor = 0):factor(factor){};
+//};
+//
+//class BCIFormula{
+//public:
+//    //复杂式子：subForms有多个子式子；简单式子：subForms为空，实际值为comp
+//    vector<BCIFormula> subForms;
+//    BCIComponent *comp = nullptr;
+//    BCIFormula(int factor){
+//        comp = new BCIComponent(factor);
+//    }
+//    BCIFormula(){};
+//};
 
-class BCIFormula{
-public:
-    //复杂式子：subForms有多个子式子；简单式子：subForms为空，实际值为comp
-    vector<BCIFormula> subForms;
-    BCIComponent *comp = nullptr;
-    BCIFormula(int factor){
-        comp = new BCIComponent(factor);
-    }
-    BCIFormula(){};
-};
+typedef enum{
+    BCIFormulaOperatorAdd,
+    BCIFormulaOperatorDiv,
+    BCIFormulaOperatorMul,
+}BCIFormulaOperator;
 
 typedef enum{
     BCIElementTypeUnknown,
@@ -651,18 +657,134 @@ typedef enum{
     BCIElementTypeNumber
 }BCIElementType;
 
+/*
+ verb和subForm不共存，有它们之一时，值为factor*verb或factor*subForm，此时factor默认值为1
+ 这两个都不存在时，值就是factor,此时factor默认值为0
+ */
+class BCIFormula{
+    struct MulDivRange{
+        int start;
+        int end;
+    };
+    vector<MulDivRange> MDRanges;
+public:
+    BCIFormulaOperator ope = BCIFormulaOperatorAdd;
+    int factor = 1;
+    string verb;
+    vector<BCIFormula> subForms;
+    
+    BCIFormula(int factor, BCIElementType eType = BCIElementTypeAdd):factor(factor){
+        setOpeWithEType(eType);
+    };
+    BCIFormula(string verb, BCIElementType eType = BCIElementTypeAdd):verb(verb){
+        setOpeWithEType(eType);
+    };
+    BCIFormula(){};
+    void setOpeWithEType(BCIElementType eType){
+        switch (eType) {
+            case BCIElementTypeMul:
+                ope = BCIFormulaOperatorMul;
+                break;
+            case BCIElementTypeDiv:
+                ope = BCIFormulaOperatorDiv;
+                break;
+            case BCIElementTypeSub:
+                factor *= -1;
+            default:
+                ope = BCIFormulaOperatorAdd;
+                break;
+        }
+    }
+    
+    //转化为字符串形式
+    string show(){
+        if (subForms.empty()) {
+            if (verb.empty()) {
+                return to_string(factor);
+            }else{
+                return factor == 1?verb:(to_string(factor)+"*"+verb);
+            }
+        }else{
+            string exp="(";
+            for (auto &form:subForms){
+                if (form.ope == BCIFormulaOperatorAdd) {
+                    if (form.factor>0) exp.push_back('+');
+                }else if (form.ope == BCIElementTypeMul){
+                    exp.push_back('*');
+                }else{
+                    exp.push_back('/');
+                }
+                
+                exp += form.show();
+            }
+            exp.push_back(')');
+            return exp;
+        }
+    }
+    
+    vector<string> showAddComps(){
+        return {};
+    }
+    
+    //简化式子。1. 常量融合 2.乘法多项式融合
+    void simplify(){
+        //先做乘法的融合，因为多出的式子会还需要加法融合，所以避免加法做两次
+        int i=-1,j=0;
+        int size = (int)subForms.size();
+        while (j<size) {
+            auto &ope = subForms[j].ope;
+            if (i<0 && ope>BCIFormulaOperatorAdd) { //乘除
+                i = j-1; //i作为乘除组的第一个式子
+            }
+            if (i>=0) { //有了第一个式子，找到后面的每个乘法因子融合
+                if (ope==BCIFormulaOperatorMul) {
+                    subForms[i]=multiplyMerge(subForms[i], subForms[j]);
+                    subForms.erase(subForms.begin()+j);
+                    j--;
+                }else if(ope==BCIFormulaOperatorAdd){
+                    i=-1;
+                }
+            }
+            j++;
+        }
+    }
+    
+    //因为融合是内层在前面的，所以此时两个式子内部的子式子都是无法在拆解的
+    static BCIFormula multiplyMerge(BCIFormula &form1, BCIFormula &form2){
+        BCIFormula result;
+        
+        int i=-1,j=0;
+        int size = (int)form1.subForms.size();
+        while (j<size) {
+            auto &ope = form1.subForms[j].ope;
+            if (i<0 && ope>BCIFormulaOperatorAdd) {
+                i = j-1;
+            }else if(i>=0 && ope==BCIFormulaOperatorAdd){
+                
+                //[i,j-1]这是一个乘除的组合
+                
+                
+                i=-1;
+            }
+            j++;
+        }
+        
+        return result;
+    }
+};
+
+
 //从start开始，一直解析到字符串结束或者遇到右括号，返回式子对象，结束为止填入到end
 BCIFormula getFormulaFromExp(string &expression, unordered_map<string, int> &verbs, int start, int *end){
     
     BCIFormula formula;
-    formula.subForms.push_back(BCIFormula(0)); //用来存加法的零散的数
-    
-    expression.push_back(' ');
-    BCIFormula *lastForm = nullptr;
+//    formula.subForms.push_back(BCIFormula(0));
+//    BCIFormula &pureNumForm = formula.subForms[0]; //零散的纯数
     
     int last = 0, len = (int)expression.length();
-    bool isDivide = false;
     BCIElementType lastEType = BCIElementTypeAdd;
+    
+    //把式子从字符串提取成对象
     for (int idx=start; idx<len; idx++){
         char c = expression[idx];
         if (c==' ') {
@@ -692,54 +814,65 @@ BCIFormula getFormulaFromExp(string &expression, unordered_map<string, int> &ver
                         break;
                 }
             }
-            if (eType == BCIElementTypeUnknown) {
-                bool isInt;
-                int number = rangeStringToInt(expression, last, idx-1, &isInt);
-                eType = isInt?BCIElementTypeNumber:BCIElementTypeVerb;
-            }
             
-            switch (eType) {
-                case BCIElementTypeBracketL:
-                    int end;
-                    BCIFormula nextForm = getFormulaFromExp(expression, verbs, idx+1, &end);
-                    break;
-                    
-                default:
-                    break;
+            if (eType == BCIElementTypeBracketL) {
+                int end;
+                BCIFormula nextForm = getFormulaFromExp(expression, verbs, idx+1, &end);
+                nextForm.setOpeWithEType(lastEType);
+                formula.subForms.push_back(nextForm);
+                idx = end;
+            }else if (eType == BCIElementTypeBracketR){ //这一段结束
+                *end = idx;
+                break;
+            }else if (eType == BCIElementTypeUnknown) {
+                bool isInt = false;
+                int number = rangeStringToInt(expression, last, idx-1, &isInt);
+                if (!isInt) {
+                    auto verbName = expression.substr(last, idx-last);
+                    auto valIter = verbs.find(verbName);
+                    if (valIter != verbs.end()) {
+                        formula.subForms.push_back(BCIFormula(valIter->second, lastEType));
+                    }else{
+                        formula.subForms.push_back(BCIFormula(verbName, lastEType));
+                    }
+                }else{
+                    formula.subForms.push_back(BCIFormula(number, lastEType));
+                }
             }
             
             lastEType = eType;
             last = idx+1;
         }
-        idx++;
     }
+    
+    formula.simplify();
+    
+    return formula;
 }
 
 vector<string> basicCalculatorIV(string &expression, vector<string> &evalvars, vector<int> &evalints) {
-    
     
     unordered_map<string, int> verbs;
     for (int i = 0; i<evalvars.size(); i++){
         verbs[evalvars[i]] = evalints[i];
     }
     
+    expression.push_back(' ');
     
-    
+    int end;
+    auto formula = getFormulaFromExp(expression, verbs, 0, &end);
+    cout<<formula.show()<<endl;
+    return formula.showAddComps();
 }
 
 int main(int argc, const char * argv[]) {
     uint64_t start = mach_absolute_time();
     string path = "/Users/apple/Downloads/9 (2).in";
     
-    
-    string s = "abababab";
-    vector<string> words = {"ab","ab","ab"};
-    findSubstring(s, words);
-    
-    BCIFormula *o1 = new BCIFormula();
-    BCIFormula *o2 = new BCIComponent();
-    
-    cout<<typeid(o1).name()<<" "<<typeid(o2).name()<<endl;
+    string exp = "e + 8 - a + 5";
+    vector<string> evalvars = {"e"};
+    vector<int> evalints = {1};
+    basicCalculatorIV(exp, evalvars, evalints);
     
     
     uint64_t duration = mach_absolute_time() - start;

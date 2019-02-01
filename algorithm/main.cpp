@@ -618,27 +618,6 @@ vector<int> findSubstring(string &s, vector<string> &words) {
     return result;
 }
 
-//一个式子由多个小式子构成，每个式子之间用运算符连接
-//如果式子内只包含乘除，则弱化为组件，每个组件形式为:-1*a*b/c/d,即因子+乘变量+除变量
-//class BCIComponent{
-//public:
-//    int factor = 0; //因子
-//    vector<string> mulVarbs; //乘积变量
-//    vector<string> divVarbs; //除的变量
-//    BCIComponent(int factor = 0):factor(factor){};
-//};
-//
-//class BCIFormula{
-//public:
-//    //复杂式子：subForms有多个子式子；简单式子：subForms为空，实际值为comp
-//    vector<BCIFormula> subForms;
-//    BCIComponent *comp = nullptr;
-//    BCIFormula(int factor){
-//        comp = new BCIComponent(factor);
-//    }
-//    BCIFormula(){};
-//};
-
 typedef enum{
     BCIFormulaOperatorAdd,
     BCIFormulaOperatorDiv,
@@ -646,7 +625,6 @@ typedef enum{
 }BCIFormulaOperator;
 
 typedef enum{
-    BCIElementTypeUnknown,
     BCIElementTypeAdd,
     BCIElementTypeSub,
     BCIElementTypeMul,
@@ -654,7 +632,8 @@ typedef enum{
     BCIElementTypeBracketL,
     BCIElementTypeBracketR,
     BCIElementTypeVerb,
-    BCIElementTypeNumber
+    BCIElementTypeNumber,
+    BCIElementTypeUnknown
 }BCIElementType;
 
 /*
@@ -662,11 +641,20 @@ typedef enum{
  这两个都不存在时，值就是factor,此时factor默认值为0
  */
 class BCIFormula{
-    struct MulDivRange{
-        int start;
-        int end;
-    };
-    vector<MulDivRange> MDRanges;
+    vector<int> addIndexes;
+    inline void multiplyVerb(string &newVerb){
+        if (subForms.empty()) {
+            if (verb.empty()) {
+                verb = newVerb;
+            }else{
+                subForms.push_back(BCIFormula(verb, BCIFormulaOperatorMul));
+                subForms.push_back(BCIFormula(newVerb, BCIFormulaOperatorMul));
+                verb = "";
+            }
+        }else{
+            subForms.push_back(BCIFormula(newVerb, BCIFormulaOperatorMul));
+        }
+    }
 public:
     BCIFormulaOperator ope = BCIFormulaOperatorAdd;
     int factor = 1;
@@ -676,9 +664,10 @@ public:
     BCIFormula(int factor, BCIElementType eType = BCIElementTypeAdd):factor(factor){
         setOpeWithEType(eType);
     };
-    BCIFormula(string verb, BCIElementType eType = BCIElementTypeAdd):verb(verb){
+    BCIFormula(string &verb, BCIElementType eType = BCIElementTypeAdd):verb(verb){
         setOpeWithEType(eType);
     };
+    BCIFormula(string &verb, BCIFormulaOperator ope):verb(verb),ope(ope){};
     BCIFormula(){};
     void setOpeWithEType(BCIElementType eType){
         switch (eType) {
@@ -730,46 +719,78 @@ public:
     void simplify(){
         //先做乘法的融合，因为多出的式子会还需要加法融合，所以避免加法做两次
         int i=-1,j=0;
-        int size = (int)subForms.size();
-        while (j<size) {
+        while (j<subForms.size()) {
             auto &ope = subForms[j].ope;
             if (i<0 && ope>BCIFormulaOperatorAdd) { //乘除
                 i = j-1; //i作为乘除组的第一个式子
             }
             if (i>=0) { //有了第一个式子，找到后面的每个乘法因子融合
                 if (ope==BCIFormulaOperatorMul) {
-                    subForms[i]=multiplyMerge(subForms[i], subForms[j]);
+                    multiplyMerge(subForms[i], subForms[j]);
                     subForms.erase(subForms.begin()+j);
                     j--;
                 }else if(ope==BCIFormulaOperatorAdd){
+                    if (i==j-1) { //乘除部分被融合成了一个子式子，那么可以把子式子拆掉
+                        auto &unfoldForm = subForms[i];
+                        if (!unfoldForm.subForms.empty()) {
+                            auto insertPos = subForms.begin()+i+1;
+                            for (auto &f:unfoldForm.subForms){
+                                f.factor *= unfoldForm.factor;
+                                insertPos = subForms.insert(insertPos, f);
+                                j++;
+                            }
+                            subForms.erase(subForms.begin()+i);
+                            j--;
+                        }
+                    }
                     i=-1;
                 }
             }
             j++;
         }
+        
+        //TODO: 加法融合
+        
+        //提取加法标记
+        int idx = 0;
+        for (auto &f:subForms){
+            if (f.ope == BCIFormulaOperatorAdd) {
+                addIndexes.push_back(idx);
+            }
+            idx++;
+        }
     }
     
-    //因为融合是内层在前面的，所以此时两个式子内部的子式子都是无法在拆解的
-    static BCIFormula multiplyMerge(BCIFormula &form1, BCIFormula &form2){
-        BCIFormula result;
-        
-        int i=-1,j=0;
-        int size = (int)form1.subForms.size();
-        while (j<size) {
-            auto &ope = form1.subForms[j].ope;
-            if (i<0 && ope>BCIFormulaOperatorAdd) {
-                i = j-1;
-            }else if(i>=0 && ope==BCIFormulaOperatorAdd){
-                
-                //[i,j-1]这是一个乘除的组合
-                
-                
-                i=-1;
+    //result内部是不可拆解的，即没有加法
+    static inline void multiplyMergeSimple(BCIFormula &simpleOne, BCIFormula &result){
+        result.factor *= simpleOne.factor;
+        if (!simpleOne.verb.empty()) {
+            for (auto &f:result.subForms){
+                f.multiplyVerb(simpleOne.verb);
             }
-            j++;
         }
-        
-        return result;
+    }
+    
+    //因为融合是内层在前面的，所以此时两个式子内部的子式子都是无法在拆解的，即没有加法
+    static void multiplyMerge(BCIFormula &form1, BCIFormula &form2){
+        if (form2.subForms.empty()) {
+            multiplyMergeSimple(form2, form1);
+        }else if(form1.subForms.empty()){
+            multiplyMergeSimple(form1, form2);
+            form1 = form2;
+        }else{
+            BCIFormula result;
+            int idxL1=0;
+            for (auto &idxR1:form1.addIndexes){
+                int idxL2=0;
+                for(auto &idxR2:form2.addIndexes){
+                    //[idxL1, idxR1-1]是第一个式子的一个不可分割的子式子,[idxL2, idxR2]同理
+                    //里面每个子式子是：1. 变量  2. 除法的子式子。因子都存到第一个的factor里了
+                    BCIFormula multiForm(form1.subForms)
+                    result.subForms.push_back(<#const_reference __x#>)
+                }
+            }
+        }
     }
 };
 

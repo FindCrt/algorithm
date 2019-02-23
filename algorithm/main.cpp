@@ -786,8 +786,8 @@ public:
                 for(auto &idxR2:form2.addIndexes){
                     //[idxL1, idxR1-1]是第一个式子的一个不可分割的子式子,[idxL2, idxR2]同理
                     //里面每个子式子是：1. 变量  2. 除法的子式子。因子都存到第一个的factor里了
-                    BCIFormula multiForm(form1.subForms)
-                    result.subForms.push_back(<#const_reference __x#>)
+//                    BCIFormula multiForm(form1.subForms)
+//                    result.subForms.push_back(<#const_reference __x#>)
                 }
             }
         }
